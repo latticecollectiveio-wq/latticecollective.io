@@ -1239,7 +1239,7 @@
     if (e.target === this) closeModal();
   });
 
-  // ── CONTACT FORM — Web3Forms ──
+  // ── CONTACT FORM — Web3Forms + Google Sheets ──
   document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
@@ -1247,6 +1247,40 @@
     btn.disabled = true;
     btn.textContent = 'Sending...';
     errEl.style.display = 'none';
+
+    const formData = new FormData(this);
+
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Also send to Google Sheets
+        fetch('https://script.google.com/macros/s/AKfycbzSwVqQ8_3xluj2ssWdZ98ALXrx4Ol1OboZa_NdfhZNNpIzZEhosJHTUsnyTveFmasRng/exec', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: formData.get('name'),
+            email: formData.get('email'),
+            service: formData.get('service'),
+            message: formData.get('message')
+          })
+        });
+        document.getElementById('formContent').style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'block';
+        setTimeout(closeModal, 3000);
+      } else {
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Send Enquiry →';
+      }
+    } catch {
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Send Enquiry →';
+    }
+  });
 
     try {
       const res = await fetch('https://api.web3forms.com/submit', {
