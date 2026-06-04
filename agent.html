@@ -51,18 +51,20 @@
   .stat-card .label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.3; }
 
   .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px; }
-  .agent-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; transition: border-color 0.2s; cursor: pointer; }
+  .agent-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; transition: border-color 0.2s; }
   .agent-card:hover { border-color: var(--border-green); }
-  .agent-card.active { border-color: var(--green); background: rgba(34,197,94,0.05); }
   .agent-icon { width: 42px; height: 42px; border-radius: 10px; background: rgba(34,197,94,0.1); border: 1px solid var(--border-green); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 14px; }
   .agent-card h3 { font-size: 15px; margin-bottom: 6px; }
   .agent-card p { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
-  .agent-btn { width: 100%; background: rgba(34,197,94,0.1); border: 1px solid var(--border-green); color: var(--green); font-family: 'Syne', sans-serif; font-weight: 600; font-size: 12px; padding: 9px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-  .agent-btn:hover { background: rgba(34,197,94,0.2); }
+  .agent-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(34,197,94,0.1); border: 1px solid var(--border-green); color: var(--green); font-size: 10px; padding: 3px 8px; border-radius: 20px; margin-bottom: 14px; }
+  .agent-btn { width: 100%; background: rgba(34,197,94,0.1); border: 1px solid var(--border-green); color: var(--green); font-family: 'Syne', sans-serif; font-weight: 600; font-size: 12px; padding: 9px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .agent-btn:hover { background: rgba(34,197,94,0.25); }
+  .agent-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .prompt-section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 16px; display: none; }
-  .prompt-section h3 { font-size: 15px; margin-bottom: 12px; color: var(--green); }
-  .prompt-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; resize: vertical; min-height: 90px; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
+  .optional-section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; display: none; }
+  .optional-section h3 { font-size: 14px; color: var(--muted); margin-bottom: 10px; font-family: 'DM Sans', sans-serif; font-weight: 400; }
+  .optional-section h3 span { color: var(--green); font-weight: 600; }
+  .prompt-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; resize: vertical; min-height: 70px; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
   .prompt-input:focus { border-color: var(--border-green); }
   .run-btn { background: var(--green); color: #000; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; padding: 12px 28px; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
   .run-btn:hover { background: var(--green-dark); }
@@ -75,7 +77,10 @@
   .copy-btn:hover { border-color: var(--border-green); color: var(--green); }
   .output-content { font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; word-break: break-word; }
   .loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-steps { margin-top: 8px; }
+  .loading-step { font-size: 12px; color: var(--muted); padding: 3px 0; display: flex; align-items: center; gap: 6px; }
+  .loading-step.done { color: var(--green); }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 13px; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
@@ -83,7 +88,6 @@
 
   @media (max-width: 640px) {
     .stats { grid-template-columns: repeat(3, 1fr); }
-    .stats .stat-card:nth-child(4), .stats .stat-card:nth-child(5) { grid-column: span 1; }
   }
 </style>
 </head>
@@ -126,46 +130,51 @@
 
   <div class="agents-grid">
 
-    <div class="agent-card" id="card-strategy">
+    <div class="agent-card">
       <div class="agent-icon">🧠</div>
+      <div class="agent-badge">⚡ Autonomous</div>
       <h3>Strategy Agent</h3>
-      <p>Build bespoke crypto investment strategies, portfolio allocations, and DeFi yield frameworks tailored to client risk profiles.</p>
-      <button class="agent-btn" onclick="selectAgent('strategy', this)">Build Strategy →</button>
+      <p>Searches live market conditions and builds bespoke crypto investment strategies and DeFi portfolio frameworks.</p>
+      <button class="agent-btn" onclick="runAgent('strategy', this)">Build Strategy →</button>
     </div>
 
-    <div class="agent-card" id="card-market">
+    <div class="agent-card">
       <div class="agent-icon">📊</div>
+      <div class="agent-badge">⚡ Autonomous + Web Search</div>
       <h3>Market Research Agent</h3>
-      <p>Deep-dive analysis on crypto assets, DeFi protocols, on-chain trends, and emerging Web3 opportunities for advisory intelligence.</p>
-      <button class="agent-btn" onclick="selectAgent('market', this)">Research Market →</button>
+      <p>Pulls live crypto market data, on-chain signals, and news to generate actionable intelligence reports.</p>
+      <button class="agent-btn" onclick="runAgent('market', this)">Research Market →</button>
     </div>
 
-    <div class="agent-card" id="card-x">
+    <div class="agent-card">
       <div class="agent-icon">𝕏</div>
+      <div class="agent-badge">⚡ Autonomous + Web Search</div>
       <h3>X Content Agent</h3>
-      <p>Generate high-engagement crypto thought leadership posts that position Lattice Collective as the go-to Web3 advisory firm.</p>
-      <button class="agent-btn" onclick="selectAgent('x', this)">Create X Post →</button>
+      <p>Finds the latest crypto news and autonomously writes high-engagement posts for Lattice Collective's X audience.</p>
+      <button class="agent-btn" onclick="runAgent('x', this)">Create X Post →</button>
     </div>
 
-    <div class="agent-card" id="card-email">
+    <div class="agent-card">
       <div class="agent-icon">✉️</div>
+      <div class="agent-badge">⚡ Autonomous</div>
       <h3>Client Email Agent</h3>
-      <p>Write professional client communications — onboarding, investment updates, opportunity alerts, and relationship management emails.</p>
-      <button class="agent-btn" onclick="selectAgent('email', this)">Write Email →</button>
+      <p>Researches current market context and writes professional client communications tailored to HNW and institutional audiences.</p>
+      <button class="agent-btn" onclick="runAgent('email', this)">Write Email →</button>
     </div>
 
-    <div class="agent-card" id="card-linkedin">
+    <div class="agent-card">
       <div class="agent-icon">💼</div>
+      <div class="agent-badge">⚡ Autonomous + Web Search</div>
       <h3>LinkedIn Agent</h3>
-      <p>Craft authoritative LinkedIn content that attracts HNW investors, family offices, and institutional clients to Lattice Collective.</p>
-      <button class="agent-btn" onclick="selectAgent('linkedin', this)">Create LinkedIn Post →</button>
+      <p>Searches trending crypto topics and crafts authoritative LinkedIn content to attract family offices and institutional investors.</p>
+      <button class="agent-btn" onclick="runAgent('linkedin', this)">Create LinkedIn Post →</button>
     </div>
 
   </div>
 
-  <!-- PROMPT -->
-  <div class="prompt-section" id="promptSection">
-    <h3 id="promptLabel">Describe what you need</h3>
+  <!-- OPTIONAL CONTEXT -->
+  <div class="optional-section" id="optionalSection">
+    <h3>Optional: <span id="optionalLabel">Add context to guide the agent</span></h3>
     <textarea class="prompt-input" id="promptInput" placeholder=""></textarea>
     <button class="run-btn" id="runBtn" onclick="executeAgent()">Run Agent →</button>
   </div>
@@ -189,96 +198,177 @@
   const agents = {
     strategy: {
       label: 'Build Strategy →',
-      promptLabel: 'Describe the client profile and investment goals',
-      placeholder: 'e.g. Client with $500k to deploy, moderate risk tolerance, interested in DeFi yields and BTC/ETH core holdings. Build a 6-month strategy...',
       outputTitle: 'Investment Strategy',
       statId: 'statStrategy',
-      system: `You are the lead investment strategist at Lattice Collective, a premier crypto and digital asset investment advisory firm. Your role is to build comprehensive, bespoke investment strategies for high-net-worth clients navigating the Web3, DeFi, and blockchain space.
+      optionalLabel: 'Add client profile or focus area (optional)',
+      placeholder: 'e.g. Client with $500k, moderate risk, interested in DeFi yields and BTC/ETH... or leave blank for a general market strategy.',
+      autonomousPrompt: `You are the lead investment strategist at Lattice Collective, a premier crypto and digital asset investment advisory firm.
 
-When building a strategy, structure your response with:
+Search the web for the latest crypto market conditions, top performing assets, DeFi yields, and macro signals RIGHT NOW. Then build a comprehensive autonomous investment strategy report.
+
+Structure your response:
 1. Executive Summary
-2. Market Context & Outlook
+2. Current Market Conditions (based on your live research)
 3. Recommended Portfolio Allocation (with % breakdown)
-4. Key Assets & Protocols
+4. Top Assets & DeFi Protocols to Consider
 5. Risk Management Framework
 6. 30/60/90 Day Action Plan
-7. KPIs to Monitor
+7. Key Metrics to Monitor
 
-Be specific, data-informed, and professional. Write as a senior advisor delivering a premium service.`
+Be specific with real current data. Write as a senior advisor delivering a premium service to a sophisticated investor.`,
+      contextPrompt: (ctx) => `You are the lead investment strategist at Lattice Collective, a premier crypto and digital asset investment advisory firm.
+
+Client context: ${ctx}
+
+Search the web for the latest crypto market conditions relevant to this client's goals. Then build a comprehensive bespoke investment strategy.
+
+Structure your response:
+1. Executive Summary
+2. Current Market Conditions (based on your live research)
+3. Recommended Portfolio Allocation tailored to this client
+4. Top Assets & DeFi Protocols to Consider
+5. Risk Management Framework
+6. 30/60/90 Day Action Plan
+7. Key Metrics to Monitor
+
+Be specific with real current data. Write as a senior advisor delivering a premium service.`
     },
     market: {
       label: 'Research Market →',
-      promptLabel: 'What do you need researched?',
-      placeholder: 'e.g. Analyse the current state of Ethereum Layer 2 ecosystems — Arbitrum, Optimism, Base — and identify the top opportunities for Q3 2025...',
       outputTitle: 'Market Research Report',
       statId: 'statMarket',
-      system: `You are the head of market research at Lattice Collective, a crypto and digital asset investment advisory firm. Your job is to produce sharp, actionable market intelligence reports for the firm's advisory clients.
+      optionalLabel: 'Focus on a specific asset, sector, or question (optional)',
+      placeholder: 'e.g. Ethereum Layer 2 ecosystem... or Bitcoin ETF flows... or leave blank for a full market overview.',
+      autonomousPrompt: `You are the head of market research at Lattice Collective, a crypto and digital asset investment advisory firm.
 
-Structure your research reports with:
+Search the web RIGHT NOW for the latest crypto market news, price movements, on-chain data, DeFi trends, regulatory developments, and institutional activity. Then produce a comprehensive market intelligence report.
+
+Structure your report:
+1. Market Summary (today's key developments)
+2. Top Movers & Why
+3. DeFi & On-Chain Signals
+4. Institutional & Macro Context
+5. Emerging Opportunities
+6. Key Risks to Watch
+7. Lattice Collective Advisory Verdict
+
+Use real current data from your search. Write for sophisticated investors who want signal, not noise.`,
+      contextPrompt: (ctx) => `You are the head of market research at Lattice Collective, a crypto and digital asset investment advisory firm.
+
+Research focus: ${ctx}
+
+Search the web RIGHT NOW for the latest data, news, and analysis specifically on this topic. Then produce a focused market intelligence report.
+
+Structure your report:
 1. Research Summary
-2. Market Overview & Current Conditions
-3. Key Players / Protocols / Assets Analysis
-4. On-Chain & Macro Signals
-5. Opportunities & Risks
+2. Latest Developments (from your live search)
+3. Key Data & Metrics
+4. Opportunities & Risks
+5. Comparable Assets/Protocols
 6. Lattice Collective Advisory Verdict
 
-Be analytical, precise, and forward-looking. Cite relevant metrics and trends. Write for sophisticated investors who want signal, not noise.`
+Use real current data. Write for sophisticated investors.`
     },
     x: {
       label: 'Create X Post →',
-      promptLabel: 'What should the post be about?',
-      placeholder: 'e.g. The impact of spot Bitcoin ETF inflows on institutional adoption and what it means for altcoin season timing...',
       outputTitle: 'X Post',
       statId: 'statX',
-      system: `You are the voice of Lattice Collective on X (Twitter). Lattice Collective is a crypto and digital asset investment advisory firm positioning itself as the smartest, most credible voice in Web3 investing.
+      optionalLabel: 'Specify a topic or angle (optional)',
+      placeholder: 'e.g. Focus on Bitcoin ETF flows... or DeFi yields... or leave blank and the agent will find the hottest topic right now.',
+      autonomousPrompt: `You are the voice of Lattice Collective on X (Twitter). Lattice Collective is a crypto and digital asset investment advisory firm.
 
-Write X posts that:
-- Are punchy, insightful, and shareable
-- Position Lattice Collective as a thought leader
-- Speak directly to serious crypto investors and institutions
-- Use 1-3 short paragraphs or a tight thread format
-- Include 3-5 relevant hashtags
-- End with a subtle but clear CTA back to Lattice Collective
-- Never hype or shill — always educate and advise
+Search the web RIGHT NOW for the most important, trending crypto news story or market development happening today. Find what the crypto community is talking about most.
 
-Tone: authoritative, sharp, slightly contrarian when warranted.`
+Then write a single high-impact X post about it that:
+- Opens with a bold, attention-grabbing statement
+- Delivers a sharp, contrarian or insightful take on the news
+- Positions Lattice Collective as the smartest voice in the room
+- Is 2-3 short punchy paragraphs
+- Includes 3-5 relevant hashtags
+- Ends with a subtle CTA (follow @LatticeWeb3 or visit latticecollective.io)
+
+Tone: authoritative, sharp, slightly contrarian. No hype. Pure signal.
+
+First briefly mention what news/topic you found, then write the post.`,
+      contextPrompt: (ctx) => `You are the voice of Lattice Collective on X (Twitter). Lattice Collective is a crypto and digital asset investment advisory firm.
+
+Topic focus: ${ctx}
+
+Search the web for the latest news and data on this topic RIGHT NOW. Then write a high-impact X post that:
+- Opens with a bold, attention-grabbing statement
+- Delivers a sharp, insightful take backed by real current data
+- Positions Lattice Collective as the smartest voice in the room
+- Is 2-3 short punchy paragraphs
+- Includes 3-5 relevant hashtags
+- Ends with a subtle CTA (follow @LatticeWeb3 or visit latticecollective.io)
+
+First briefly mention what you found, then write the post.`
     },
     email: {
       label: 'Write Email →',
-      promptLabel: 'Describe the email context, recipient, and purpose',
-      placeholder: 'e.g. Follow-up email to a family office that attended our webinar on DeFi yield strategies. They expressed interest but haven\'t booked a call yet...',
       outputTitle: 'Client Email',
       statId: 'statEmail',
-      system: `You are the head of client relations at Lattice Collective, a crypto and digital asset investment advisory firm serving high-net-worth individuals, family offices, and institutional clients.
+      optionalLabel: 'Describe the recipient and purpose (optional)',
+      placeholder: 'e.g. Follow-up to a family office interested in DeFi yields... or onboarding email for a new HNW client... or leave blank for a general market update email.',
+      autonomousPrompt: `You are the head of client relations at Lattice Collective, a crypto and digital asset investment advisory firm serving HNW individuals, family offices, and institutional clients.
 
-Write professional, compelling emails that:
-- Are warm but authoritative in tone
-- Clearly articulate Lattice Collective's value proposition
-- Are concise and respect the recipient's time
-- Include a specific, low-friction call to action
-- Feel personalised, not templated
-- Reinforce trust and credibility in every line
+Search the web for the most significant crypto market development or opportunity RIGHT NOW that would be valuable to communicate to clients.
 
-Always include: Subject line, opening, body, CTA, and professional sign-off from the Lattice Collective team.`
+Then write a professional client email:
+- Subject line included
+- Opens with the key market insight you found
+- Explains why it matters to their portfolio/strategy
+- Highlights Lattice Collective's perspective and edge
+- Includes a clear CTA (book a call, review your strategy, etc.)
+- Professional sign-off from the Lattice Collective team
+
+Tone: warm but authoritative. Concise. High-value.`,
+      contextPrompt: (ctx) => `You are the head of client relations at Lattice Collective, a crypto and digital asset investment advisory firm.
+
+Email context: ${ctx}
+
+Search the web for any relevant current market data or news that strengthens this email. Then write a professional, compelling client email with:
+- Subject line
+- Personalised opening
+- Clear value proposition and relevant market context
+- Specific CTA
+- Professional sign-off from the Lattice Collective team
+
+Tone: warm but authoritative. Concise. High-value.`
     },
     linkedin: {
       label: 'Create LinkedIn Post →',
-      promptLabel: 'What should the LinkedIn post cover?',
-      placeholder: 'e.g. Why most retail investors are approaching crypto all wrong — and the institutional framework Lattice Collective uses instead...',
       outputTitle: 'LinkedIn Post',
       statId: 'statLinkedIn',
-      system: `You are the LinkedIn content strategist for Lattice Collective, a crypto and digital asset investment advisory firm targeting sophisticated investors, family offices, and institutional allocators.
+      optionalLabel: 'Specify a topic or angle (optional)',
+      placeholder: 'e.g. Institutional crypto adoption... or DeFi vs TradFi... or leave blank and the agent will find the best topic right now.',
+      autonomousPrompt: `You are the LinkedIn content strategist for Lattice Collective, a crypto and digital asset investment advisory firm targeting sophisticated investors, family offices, and institutional allocators.
 
-Write LinkedIn posts that:
-- Open with a bold, scroll-stopping first line
-- Deliver genuine insight on crypto investing, Web3 trends, or DeFi strategy
-- Are 150-300 words — substantive but scannable
-- Use line breaks for readability (no walls of text)
-- Position Lattice Collective as the premium advisory choice
-- End with a thought-provoking question or clear CTA
-- Include 3-5 professional hashtags
+Search the web RIGHT NOW for the most important crypto or Web3 trend, news story, or market insight that would resonate with senior finance professionals and institutional investors on LinkedIn today.
 
-Tone: confident, knowledgeable, executive-level. This is LinkedIn — authoritative and professional, not casual.`
+Then write an authoritative LinkedIn post that:
+- Opens with a scroll-stopping first line (bold insight or contrarian take)
+- Delivers genuine value — education, analysis, or a fresh perspective
+- References the real current news/data you found
+- Positions Lattice Collective as the go-to advisory firm for serious investors
+- Is 150-250 words with clean line breaks
+- Ends with a thought-provoking question or CTA
+- Includes 4-5 professional hashtags
+
+First briefly note what topic/news you found, then write the post.`,
+      contextPrompt: (ctx) => `You are the LinkedIn content strategist for Lattice Collective, a crypto and digital asset investment advisory firm.
+
+Topic: ${ctx}
+
+Search the web for the latest data, news, or insights on this topic RIGHT NOW. Then write an authoritative LinkedIn post that:
+- Opens with a scroll-stopping first line
+- Delivers real value backed by current data
+- Positions Lattice Collective as the premier advisory firm
+- Is 150-250 words with clean line breaks
+- Ends with a question or CTA
+- Includes 4-5 professional hashtags
+
+First briefly note what you found, then write the post.`
     }
   };
 
@@ -286,18 +376,8 @@ Tone: confident, knowledgeable, executive-level. This is LinkedIn — authoritat
     const key = document.getElementById('apiKeyInput').value.trim();
     const errorMsg = document.getElementById('errorMsg');
     errorMsg.style.display = 'none';
-
-    if (!key) {
-      errorMsg.textContent = 'Please enter your Anthropic API key.';
-      errorMsg.style.display = 'block';
-      return;
-    }
-    if (!key.startsWith('sk-ant-')) {
-      errorMsg.textContent = 'Invalid API key format. Should start with sk-ant-';
-      errorMsg.style.display = 'block';
-      return;
-    }
-
+    if (!key) { errorMsg.textContent = 'Please enter your Anthropic API key.'; errorMsg.style.display = 'block'; return; }
+    if (!key.startsWith('sk-ant-')) { errorMsg.textContent = 'Invalid key format. Should start with sk-ant-'; errorMsg.style.display = 'block'; return; }
     apiKey = key;
     document.getElementById('setupScreen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
@@ -305,53 +385,59 @@ Tone: confident, knowledgeable, executive-level. This is LinkedIn — authoritat
   }
 
   function logout() {
-    apiKey = '';
-    activeAgent = null;
+    apiKey = ''; activeAgent = null;
     document.getElementById('setupScreen').style.display = 'block';
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('apiKeyInput').value = '';
     document.getElementById('statusText').textContent = 'Enter API key to activate';
     document.getElementById('outputSection').style.display = 'none';
-    document.getElementById('promptSection').style.display = 'none';
+    document.getElementById('optionalSection').style.display = 'none';
   }
 
-  function selectAgent(type, btn) {
+  function runAgent(type, btn) {
     activeAgent = type;
     const agent = agents[type];
-
-    // Update card highlights
-    document.querySelectorAll('.agent-card').forEach(c => c.classList.remove('active'));
-    document.getElementById('card-' + type).classList.add('active');
-
-    // Update prompt section
-    document.getElementById('promptLabel').textContent = agent.promptLabel;
+    document.querySelectorAll('.agent-btn').forEach(b => { b.textContent = b.textContent.replace(' ✓', ''); });
+    btn.textContent = btn.textContent + ' ✓';
+    document.getElementById('optionalLabel').textContent = agent.optionalLabel;
     document.getElementById('promptInput').placeholder = agent.placeholder;
     document.getElementById('promptInput').value = '';
     document.getElementById('runBtn').textContent = agent.label;
-    document.getElementById('promptSection').style.display = 'block';
+    document.getElementById('optionalSection').style.display = 'block';
     document.getElementById('outputSection').style.display = 'none';
-    document.getElementById('promptInput').focus();
-
-    // Scroll to prompt
-    document.getElementById('promptSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('optionalSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   async function executeAgent() {
-    const prompt = document.getElementById('promptInput').value.trim();
-    if (!prompt) { alert('Please describe what you need first.'); return; }
     if (!activeAgent) { alert('Please select an agent first.'); return; }
-
     const agent = agents[activeAgent];
+    const context = document.getElementById('promptInput').value.trim();
+    const prompt = context ? agent.contextPrompt(context) : agent.autonomousPrompt;
+
     const runBtn = document.getElementById('runBtn');
     runBtn.disabled = true;
-    runBtn.textContent = 'Running...';
+    runBtn.textContent = 'Agent Running...';
 
     const outputSection = document.getElementById('outputSection');
     const outputContent = document.getElementById('outputContent');
     document.getElementById('outputTitle').textContent = agent.outputTitle;
     outputSection.style.display = 'block';
-    outputContent.innerHTML = '<div class="loading"><div class="spinner"></div><span>Agent working...</span></div>';
+    outputContent.innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        <span>Agent working autonomously...</span>
+      </div>
+      <div class="loading-steps" id="loadingSteps">
+        <div class="loading-step" id="step1">🔍 Searching live crypto data & news...</div>
+        <div class="loading-step" id="step2">🧠 Analysing and synthesising...</div>
+        <div class="loading-step" id="step3">✍️ Generating output...</div>
+      </div>`;
     outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Animate loading steps
+    setTimeout(() => { const s = document.getElementById('step1'); if(s) s.classList.add('done'); }, 2000);
+    setTimeout(() => { const s = document.getElementById('step2'); if(s) s.classList.add('done'); }, 5000);
+    setTimeout(() => { const s = document.getElementById('step3'); if(s) s.classList.add('done'); }, 8000);
 
     try {
       const response = await fetch(WORKER_URL, {
@@ -363,23 +449,29 @@ Tone: confident, knowledgeable, executive-level. This is LinkedIn — authoritat
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          system: agent.system,
+          max_tokens: 1500,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
           messages: [{ role: 'user', content: prompt }]
         })
       });
 
       const data = await response.json();
 
-      if (data.content && data.content[0]) {
-        outputContent.textContent = data.content[0].text;
-        stats[activeAgent]++;
-        document.getElementById(agent.statId).textContent = stats[activeAgent];
+      if (data.content && data.content.length > 0) {
+        // Extract all text blocks from response (handles tool use + text)
+        const textBlocks = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n\n');
+        if (textBlocks) {
+          outputContent.textContent = textBlocks;
+          stats[activeAgent]++;
+          document.getElementById(agent.statId).textContent = stats[activeAgent];
+        } else {
+          outputContent.textContent = 'Agent completed search but produced no text output. Please try again.';
+        }
       } else {
-        outputContent.textContent = 'Error: ' + (data.error?.message || 'Something went wrong. Check your API key and try again.');
+        outputContent.textContent = 'Error: ' + (data.error?.message || 'Something went wrong. Check your API key and credits.');
       }
     } catch (err) {
-      outputContent.textContent = 'Connection error. Please check your API key and try again.';
+      outputContent.textContent = 'Connection error: ' + err.message;
     }
 
     runBtn.disabled = false;
