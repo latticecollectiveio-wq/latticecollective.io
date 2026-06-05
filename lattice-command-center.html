@@ -694,7 +694,7 @@ async function runAgent(id){
   const userMsg=parts.length?parts.join('\n\n')+'\n\nExecute your mission now.':'Execute your mission now based on current Web3/DeFi/crypto market conditions.';
 
   try{
-    const body={model:'claude-sonnet-4-20250514',max_tokens:1000,system:cfg.system,messages:[{role:'user',content:userMsg}]};
+    const body={model:'claude-sonnet-4-6',max_tokens:1000,system:cfg.system,messages:[{role:'user',content:userMsg}]};
     if(cfg.useSearch)body.tools=[{type:'web_search_20250305',name:'web_search'}];
 
     let res;
@@ -703,8 +703,7 @@ async function runAgent(id){
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'anthropic-version':'2023-06-01',
-          'anthropic-beta':'interleaved-thinking-2025-05-14'
+          'anthropic-version':'2023-06-01'
         },
         body:JSON.stringify(body),
         mode:'cors'
