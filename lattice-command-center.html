@@ -8,6 +8,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
+  --blue:#40c4ff;
+  --yellow:#ffd740;
+  --red:#ff5252;
+  --purple:#b388ff;
+  --cyan:#18ffff;
   --g:#00ff88;
   --gb:rgba(0,255,136,0.08);
   --gb2:rgba(0,255,136,0.15);
@@ -55,8 +60,10 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
   width:220px;flex-shrink:0;
   border-right:1px solid var(--border);
   background:rgba(0,8,4,0.92);backdrop-filter:blur(10px);
-  display:flex;flex-direction:column;overflow:hidden;
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
 }
+#sidebar::-webkit-scrollbar{width:2px;}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);}
 .sidebar-section{padding:12px 16px;border-bottom:1px solid var(--border);}
 .sidebar-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);letter-spacing:0.2em;margin-bottom:10px;}
 .agent-item{
@@ -109,10 +116,86 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 .metric-mini-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);letter-spacing:0.1em;}
 .metric-mini-val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--g);}
 
+/* ── TRADING BOT PANEL ── */
+.bot-panel{
+  margin:12px 16px;
+  border:1px solid rgba(0,255,136,0.2);
+  background:rgba(0,12,6,0.7);
+}
+.bot-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;border-bottom:1px solid rgba(0,255,136,0.12);
+  background:rgba(0,255,136,0.04);
+}
+.bot-panel-title{
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  color:rgba(0,255,136,0.8);letter-spacing:2px;
+  display:flex;align-items:center;gap:6px;
+}
+.bot-sdot{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(0,255,136,0.2);flex-shrink:0;
+}
+.bot-sdot.live{background:#00ff88;box-shadow:0 0 5px #00ff88;animation:blink 1.5s infinite;}
+.bot-sdot.paper{background:#ffd740;box-shadow:0 0 5px #ffd740;}
+.bot-open-link{
+  font-family:'Share Tech Mono',monospace;font-size:7px;
+  color:rgba(0,255,136,0.5);border:1px solid rgba(0,255,136,0.2);
+  padding:2px 7px;text-decoration:none;letter-spacing:1px;
+  transition:all 0.2s;
+}
+.bot-open-link:hover{color:#00ff88;border-color:rgba(0,255,136,0.5);background:rgba(0,255,136,0.06);}
+.bot-prices{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-bottom:1px solid rgba(0,255,136,0.08);
+}
+.bot-price-cell{
+  padding:5px 8px;border-right:1px solid rgba(0,255,136,0.08);
+}
+.bot-price-cell:last-child{border-right:none;}
+.bot-price-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.3);letter-spacing:1px;}
+.bot-price-val{font-family:'Orbitron',monospace;font-size:9px;color:rgba(0,255,136,0.8);margin-top:2px;}
+.bot-stats{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  border-bottom:1px solid rgba(0,255,136,0.08);
+}
+.bot-stat-cell{
+  padding:6px 8px;border-right:1px solid rgba(0,255,136,0.08);
+}
+.bot-stat-cell:nth-child(2){border-right:none;}
+.bot-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.3);letter-spacing:1px;}
+.bot-stat-val{font-family:'Orbitron',monospace;font-size:11px;color:rgba(0,255,136,0.9);margin-top:2px;}
+.bot-stat-val.pos{color:#00ff88;}
+.bot-stat-val.neg{color:#ff5252;}
+.bot-stat-val.yellow{color:#ffd740;}
+.bot-trades-list{max-height:100px;overflow-y:auto;}
+.bot-trades-list::-webkit-scrollbar{width:2px;}
+.bot-trades-list::-webkit-scrollbar-thumb{background:rgba(0,255,136,0.15);}
+.bot-trade-row{
+  display:grid;grid-template-columns:44px 36px 1fr 52px;gap:4px;
+  padding:4px 8px;border-bottom:1px solid rgba(0,255,136,0.05);
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  color:rgba(0,255,136,0.4);align-items:center;
+}
+.bot-trade-buy{color:#00ff88;}
+.bot-trade-sell{color:#ff5252;}
+.bot-trade-pnl-pos{color:#00ff88;}
+.bot-trade-pnl-neg{color:#ff5252;}
+.bot-empty-msg{
+  padding:14px 8px;text-align:center;
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  color:rgba(0,255,136,0.18);letter-spacing:1px;
+}
+.bot-mode-badge{
+  font-family:'Share Tech Mono',monospace;font-size:7px;
+  letter-spacing:1px;padding:1px 5px;
+}
+.bot-mode-badge.paper{color:#ffd740;}
+.bot-mode-badge.live{color:#00ff88;}
+.bot-mode-badge.offline{color:rgba(0,255,136,0.3);}
+
 /* CENTER */
 #center{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-
-/* OUTPUT AREA */
 #output-panel{
   flex:1;padding:20px 24px;overflow-y:auto;
   scrollbar-width:thin;scrollbar-color:var(--border) transparent;
@@ -120,7 +203,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 #output-panel::-webkit-scrollbar{width:4px;}
 #output-panel::-webkit-scrollbar-track{background:transparent;}
 #output-panel::-webkit-scrollbar-thumb{background:var(--border);}
-
 .panel-header{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);
@@ -134,7 +216,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 }
 .ptab:hover{border-color:var(--border);color:var(--g);}
 .ptab.active{border-color:var(--gc);color:var(--g);background:var(--gb);}
-
 .output-screen{
   background:rgba(0,12,6,0.8);border:1px solid var(--border);
   padding:16px;min-height:140px;margin-bottom:16px;
@@ -149,8 +230,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 .output-cursor::after{content:'_';animation:blink 1s infinite;color:var(--g);}
 .output-empty{color:rgba(0,255,136,0.25);font-style:normal;}
 .output-loading{color:#ffcc00;}
-
-/* TOPIC INPUT */
 .topic-row{display:flex;gap:8px;margin-bottom:16px;}
 .topic-input{
   flex:1;background:rgba(0,12,6,0.8);border:1px solid var(--border);
@@ -159,8 +238,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 }
 .topic-input::placeholder{color:rgba(0,255,136,0.25);}
 .topic-input:focus{border-color:var(--gc);}
-
-/* ACTION BUTTONS */
 .action-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
 .act-btn{
   display:flex;align-items:center;gap:6px;
@@ -170,8 +247,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 }
 .act-btn:hover{border-color:var(--gc);background:var(--gb2);}
 .act-btn.success{border-color:var(--g);color:#fff;}
-
-/* PIPELINE */
 .pipeline-table{width:100%;border-collapse:collapse;}
 .pipeline-table th{
   font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);
@@ -203,8 +278,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 }
 .add-inp:focus{border-color:var(--gc);}
 .add-inp::placeholder{color:rgba(0,255,136,0.2);}
-
-/* ACTIVITY LOG */
 .log-entry{
   display:flex;gap:12px;padding:5px 0;
   border-bottom:1px solid rgba(0,255,136,0.04);
@@ -230,30 +303,21 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 }
 .memory-item.has-data{border-left-color:var(--g);color:#c0ffe0;}
 .mem-agent{font-size:7px;color:var(--gc);margin-bottom:2px;letter-spacing:0.1em;}
-
-/* SCANLINE EFFECT */
 #scanlines{
   position:fixed;top:0;left:0;width:100%;height:100%;z-index:5;
   pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
 }
-/* CORNER DECORATIONS */
 .corner-dec{position:fixed;width:40px;height:40px;z-index:11;pointer-events:none;}
 .corner-dec.tl{top:0;left:0;border-top:2px solid var(--gc);border-left:2px solid var(--gc);}
 .corner-dec.tr{top:0;right:0;border-top:2px solid var(--gc);border-right:2px solid var(--gc);}
 .corner-dec.bl{bottom:0;left:0;border-bottom:2px solid var(--gc);border-left:2px solid var(--gc);}
 .corner-dec.br{bottom:0;right:0;border-bottom:2px solid var(--gc);border-right:2px solid var(--gc);}
-
-/* SCROLLBAR */
 *{scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
 *::-webkit-scrollbar{width:3px;}
 *::-webkit-scrollbar-thumb{background:var(--border);}
-
-/* TAB PANELS */
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
-
-/* PASSWORD GATE */
 #pw-gate{
   position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;
   background:#000;display:flex;align-items:center;justify-content:center;
@@ -287,8 +351,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 .pw-corner.tr{top:-1px;right:-1px;border-top:2px solid var(--g);border-right:2px solid var(--g);}
 .pw-corner.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--g);border-left:2px solid var(--g);}
 .pw-corner.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--g);border-right:2px solid var(--g);}
-
-/* SPINNER */
 .spin{display:inline-block;width:10px;height:10px;border:1.5px solid var(--gc);border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 </style>
@@ -325,14 +387,15 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
       </div>
       <div>
         <div class="logo-text">LATTICE COLLECTIVE</div>
-        <div class="logo-sub">COMMAND CENTER v2.1</div>
+        <div class="logo-sub">COMMAND CENTER v2.2</div>
       </div>
     </div>
     <div class="topbar-center">
-      <div class="sys-stat"><div class="sys-stat-val" id="metRuns">0</div><div class="sys-stat-lbl">AGENT RUNS</div></div>
-      <div class="sys-stat"><div class="sys-stat-val" id="metPosts">0</div><div class="sys-stat-lbl">POSTS READY</div></div>
-      <div class="sys-stat"><div class="sys-stat-val" id="metLeads">0</div><div class="sys-stat-lbl">NEW LEADS</div></div>
-      <div class="sys-stat"><div class="sys-stat-val" id="metPipeline">0</div><div class="sys-stat-lbl">PIPELINE</div></div>
+      <div class="sys-stat"><div class="sys-stat-val" id="metRuns" style="color:#00ff88">0</div><div class="sys-stat-lbl">AGENT RUNS</div></div>
+      <div class="sys-stat"><div class="sys-stat-val" id="metPosts" style="color:#40c4ff">0</div><div class="sys-stat-lbl">POSTS READY</div></div>
+      <div class="sys-stat"><div class="sys-stat-val" id="metLeads" style="color:#ffd740">0</div><div class="sys-stat-lbl">NEW LEADS</div></div>
+      <div class="sys-stat"><div class="sys-stat-val" id="metPipeline" style="color:#b388ff">0</div><div class="sys-stat-lbl">PIPELINE</div></div>
+      <div class="sys-stat"><div class="sys-stat-val" id="metBotPnl" style="color:#18ffff">$0.00</div><div class="sys-stat-lbl">BOT P&L</div></div>
     </div>
     <div class="topbar-right">
       <div class="clock" id="clock">00:00:00</div>
@@ -348,15 +411,15 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
       <div class="sidebar-section">
         <div class="sidebar-label">// AGENT MATRIX</div>
         <div class="agent-item" id="ai-research" onclick="selectAgent('research')">
-          <div class="agent-ico">&#9906;</div>
+          <div class="agent-ico" style="border-color:rgba(0,255,136,0.4);color:#00ff88">&#9906;</div>
           <div class="agent-info">
-            <div class="agent-name">Market Research</div>
+            <div class="agent-name">Market Resear...</div>
             <div class="agent-state" id="st-research">STANDBY</div>
           </div>
           <button class="run-btn" id="rb-research" onclick="event.stopPropagation();runAgent('research')">RUN</button>
         </div>
         <div class="agent-item" id="ai-strategy" onclick="selectAgent('strategy')">
-          <div class="agent-ico">&#9651;</div>
+          <div class="agent-ico" style="border-color:rgba(64,196,255,0.4);color:#40c4ff">&#9651;</div>
           <div class="agent-info">
             <div class="agent-name">Strategy</div>
             <div class="agent-state" id="st-strategy">STANDBY</div>
@@ -364,7 +427,7 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
           <button class="run-btn" id="rb-strategy" onclick="event.stopPropagation();runAgent('strategy')">RUN</button>
         </div>
         <div class="agent-item" id="ai-xcontent" onclick="selectAgent('xcontent')">
-          <div class="agent-ico">&#9673;</div>
+          <div class="agent-ico" style="border-color:rgba(179,136,255,0.4);color:#b388ff">&#9673;</div>
           <div class="agent-info">
             <div class="agent-name">X Content</div>
             <div class="agent-state" id="st-xcontent">STANDBY</div>
@@ -372,7 +435,7 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
           <button class="run-btn" id="rb-xcontent" onclick="event.stopPropagation();runAgent('xcontent')">RUN</button>
         </div>
         <div class="agent-item" id="ai-linkedin" onclick="selectAgent('linkedin')">
-          <div class="agent-ico">&#9670;</div>
+          <div class="agent-ico" style="border-color:rgba(255,215,64,0.4);color:#ffd740">&#9670;</div>
           <div class="agent-info">
             <div class="agent-name">LinkedIn</div>
             <div class="agent-state" id="st-linkedin">STANDBY</div>
@@ -380,7 +443,7 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
           <button class="run-btn" id="rb-linkedin" onclick="event.stopPropagation();runAgent('linkedin')">RUN</button>
         </div>
         <div class="agent-item" id="ai-email" onclick="selectAgent('email')">
-          <div class="agent-ico">&#9993;</div>
+          <div class="agent-ico" style="border-color:rgba(255,82,82,0.4);color:#ff5252">&#9993;</div>
           <div class="agent-info">
             <div class="agent-name">Client Email</div>
             <div class="agent-state" id="st-email">STANDBY</div>
@@ -389,12 +452,65 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
         </div>
       </div>
 
-      <div class="sidebar-section" style="flex:1;overflow-y:auto;">
+      <!-- ── TRADING BOT PANEL ── -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">// TRADING BOT</div>
+        <div class="bot-panel">
+          <div class="bot-panel-header">
+            <div class="bot-panel-title">
+              <span class="bot-sdot offline" id="bot-sdot"></span>
+              <span id="bot-mode-badge" class="bot-mode-badge offline">OFFLINE</span>
+            </div>
+            <a href="/lattice-trading-bot.html" target="_blank" class="bot-open-link">OPEN ↗</a>
+          </div>
+          <!-- Prices -->
+          <div class="bot-prices">
+            <div class="bot-price-cell">
+              <div class="bot-price-lbl">BTC</div>
+              <div class="bot-price-val" id="bp-btc" style="color:#ffd740">--</div>
+            </div>
+            <div class="bot-price-cell">
+              <div class="bot-price-lbl">ETH</div>
+              <div class="bot-price-val" id="bp-eth" style="color:#40c4ff">--</div>
+            </div>
+            <div class="bot-price-cell">
+              <div class="bot-price-lbl">SOL</div>
+              <div class="bot-price-val" id="bp-sol" style="color:#b388ff">--</div>
+            </div>
+          </div>
+          <!-- Stats -->
+          <div class="bot-stats">
+            <div class="bot-stat-cell">
+              <div class="bot-stat-lbl">P&L</div>
+              <div class="bot-stat-val" id="bp-pnl">$0.00</div>
+            </div>
+            <div class="bot-stat-cell">
+              <div class="bot-stat-lbl">WIN RATE</div>
+              <div class="bot-stat-val yellow" id="bp-wr">0%</div>
+            </div>
+            <div class="bot-stat-cell" style="border-top:1px solid rgba(0,255,136,0.08);">
+              <div class="bot-stat-lbl">TRADES</div>
+              <div class="bot-stat-val" id="bp-trades">0</div>
+            </div>
+            <div class="bot-stat-cell" style="border-top:1px solid rgba(0,255,136,0.08);">
+              <div class="bot-stat-lbl">UPTIME</div>
+              <div class="bot-stat-val yellow" id="bp-uptime">--:--</div>
+            </div>
+          </div>
+          <!-- Recent trades -->
+          <div style="padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.25);letter-spacing:1px;border-bottom:1px solid rgba(0,255,136,0.06);">RECENT FILLS</div>
+          <div class="bot-trades-list" id="bp-trades-list">
+            <div class="bot-empty-msg">&gt; START BOT TO SEE TRADES</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-label">// SYSTEM METRICS</div>
-        <div class="metric-mini"><span class="metric-mini-lbl">UPTIME</span><span class="metric-mini-val" id="uptime">00:00</span></div>
+        <div class="metric-mini"><span class="metric-mini-lbl">UPTIME</span><span class="metric-mini-val" id="uptime" style="color:#18ffff">00:00</span></div>
         <div class="metric-mini"><span class="metric-mini-lbl">API STATUS</span><span class="metric-mini-val" style="font-size:9px;color:#00ff88;">LIVE</span></div>
-        <div class="metric-mini"><span class="metric-mini-lbl">WORKER</span><span class="metric-mini-val" style="font-size:9px;color:#00ff88;">CF OK</span></div>
-        <div class="metric-mini"><span class="metric-mini-lbl">ERRORS</span><span class="metric-mini-val" id="errCount">0</span></div>
+        <div class="metric-mini"><span class="metric-mini-lbl">WORKER</span><span class="metric-mini-val" style="font-size:9px;color:#40c4ff;">CF OK</span></div>
+        <div class="metric-mini"><span class="metric-mini-lbl">ERRORS</span><span class="metric-mini-val" id="errCount" style="color:#ff5252">0</span></div>
       </div>
     </div>
 
@@ -447,11 +563,11 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
     <div id="right-panel">
       <div class="rp-section">
         <div class="rp-label">// AGENT MEMORY</div>
-        <div class="memory-item" id="mem-research"><div class="mem-agent">RESEARCH</div><span id="memtxt-research">NO DATA</span></div>
-        <div class="memory-item" id="mem-strategy"><div class="mem-agent">STRATEGY</div><span id="memtxt-strategy">NO DATA</span></div>
-        <div class="memory-item" id="mem-xcontent"><div class="mem-agent">X CONTENT</div><span id="memtxt-xcontent">NO DATA</span></div>
-        <div class="memory-item" id="mem-linkedin"><div class="mem-agent">LINKEDIN</div><span id="memtxt-linkedin">NO DATA</span></div>
-        <div class="memory-item" id="mem-email"><div class="mem-agent">EMAIL</div><span id="memtxt-email">NO DATA</span></div>
+        <div class="memory-item" id="mem-research"><div class="mem-agent" style="color:#00ff88">RESEARCH</div><span id="memtxt-research">NO DATA</span></div>
+        <div class="memory-item" id="mem-strategy"><div class="mem-agent" style="color:#40c4ff">STRATEGY</div><span id="memtxt-strategy">NO DATA</span></div>
+        <div class="memory-item" id="mem-xcontent"><div class="mem-agent" style="color:#b388ff">X CONTENT</div><span id="memtxt-xcontent">NO DATA</span></div>
+        <div class="memory-item" id="mem-linkedin"><div class="mem-agent" style="color:#ffd740">LINKEDIN</div><span id="memtxt-linkedin">NO DATA</span></div>
+        <div class="memory-item" id="mem-email"><div class="mem-agent" style="color:#ff5252">EMAIL</div><span id="memtxt-email">NO DATA</span></div>
       </div>
       <div class="rp-section" style="flex:1;overflow-y:auto;">
         <div class="rp-label">// INTEL FEED</div>
@@ -463,121 +579,44 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 
 <script>
 /* ── PASSWORD GATE ── */
-const ACCESS_CODE = 'BhEh669';
+const ACCESS_CODE='BhEh669';
 function checkPw(){
-  const val = document.getElementById('pwInput').value;
-  if(val === ACCESS_CODE){
-    const gate = document.getElementById('pw-gate');
-    gate.style.transition = 'opacity 0.6s';
-    gate.style.opacity = '0';
-    setTimeout(()=>gate.style.display='none', 600);
-  } else {
-    const err = document.getElementById('pwErr');
-    err.textContent = '> ACCESS DENIED. INVALID CODE.';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').style.borderColor = '#ff4444';
-    setTimeout(()=>{
-      err.textContent = '';
-      document.getElementById('pwInput').style.borderColor = '';
-    }, 2000);
+  const val=document.getElementById('pwInput').value;
+  if(val===ACCESS_CODE){
+    const gate=document.getElementById('pw-gate');
+    gate.style.transition='opacity 0.6s';gate.style.opacity='0';
+    setTimeout(()=>gate.style.display='none',600);
+  }else{
+    const err=document.getElementById('pwErr');
+    err.textContent='> ACCESS DENIED. INVALID CODE.';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').style.borderColor='#ff4444';
+    setTimeout(()=>{err.textContent='';document.getElementById('pwInput').style.borderColor='';},2000);
   }
 }
 
-/* ── 3D BACKGROUND ── */
-const canvas = document.getElementById('bg');
-const ctx = canvas.getContext('2d');
-let W, H;
+/* ── BACKGROUND ── */
+const canvas=document.getElementById('bg');
+const ctx=canvas.getContext('2d');
+let W,H;
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
-resize();
-window.addEventListener('resize',resize);
-
-const GRID = 28;
-let camZ = 0;
-const particles = Array.from({length:120},()=>({
-  x:(Math.random()-0.5)*3000,
-  y:(Math.random()-0.5)*3000,
-  z:Math.random()*2000,
-  size:Math.random()*1.5+0.3,
-  speed:Math.random()*0.4+0.1
-}));
-
-function project(x,y,z){
-  const fov=600;
-  const pz=fov/(z+1);
-  return{px:W/2+x*pz,py:H/2+y*pz,s:pz};
-}
-
+resize();window.addEventListener('resize',resize);
+const particles=Array.from({length:120},()=>({x:(Math.random()-0.5)*3000,y:(Math.random()-0.5)*3000,z:Math.random()*2000,size:Math.random()*1.5+0.3,speed:Math.random()*0.4+0.1}));
+function project(x,y,z){const fov=600;const pz=fov/(z+1);return{px:W/2+x*pz,py:H/2+y*pz,s:pz};}
 function drawBg(){
-  ctx.fillStyle='rgba(0,0,0,0.18)';
-  ctx.fillRect(0,0,W,H);
-
-  camZ+=0.4;
-
-  /* grid floor */
-  const rows=16,cols=24;
-  const horizon=H*0.52;
-  ctx.strokeStyle='rgba(0,255,136,0.07)';
-  ctx.lineWidth=0.5;
-  for(let r=0;r<=rows;r++){
-    const t=r/rows;
-    const y=horizon+t*t*(H-horizon)*1.4;
-    const xSpread=t*W*1.6;
-    ctx.beginPath();ctx.moveTo(W/2-xSpread,y);ctx.lineTo(W/2+xSpread,y);ctx.stroke();
-  }
-  for(let c=-cols/2;c<=cols/2;c++){
-    ctx.beginPath();
-    ctx.moveTo(W/2+c*(W*0.04),horizon);
-    ctx.lineTo(W/2+c*(W*1.4),H*1.2);
-    ctx.stroke();
-  }
-
-  /* stars / particles */
-  for(const p of particles){
-    p.z-=p.speed*2;
-    if(p.z<1)p.z=2000;
-    const {px,py,s}=project(p.x,p.y,p.z);
-    if(px<0||px>W||py<0||py>H)continue;
-    const a=Math.min(1,(2000-p.z)/2000)*0.8;
-    ctx.fillStyle=`rgba(0,255,136,${a})`;
-    ctx.beginPath();ctx.arc(px,py,p.size*s*0.12,0,Math.PI*2);ctx.fill();
-  }
-
-  /* floating hex rings */
+  ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
+  const rows=16,cols=24,horizon=H*0.52;
+  ctx.strokeStyle='rgba(0,255,136,0.07)';ctx.lineWidth=0.5;
+  for(let r=0;r<=rows;r++){const t=r/rows;const y=horizon+t*t*(H-horizon)*1.4;const xSpread=t*W*1.6;ctx.beginPath();ctx.moveTo(W/2-xSpread,y);ctx.lineTo(W/2+xSpread,y);ctx.stroke();}
+  for(let c=-cols/2;c<=cols/2;c++){ctx.beginPath();ctx.moveTo(W/2+c*(W*0.04),horizon);ctx.lineTo(W/2+c*(W*1.4),H*1.2);ctx.stroke();}
+  for(const p of particles){p.z-=p.speed*2;if(p.z<1)p.z=2000;const{px,py,s}=project(p.x,p.y,p.z);if(px<0||px>W||py<0||py>H)continue;const a=Math.min(1,(2000-p.z)/2000)*0.8;ctx.fillStyle=`rgba(0,255,136,${a})`;ctx.beginPath();ctx.arc(px,py,p.size*s*0.12,0,Math.PI*2);ctx.fill();}
   const t=Date.now()*0.0004;
-  for(let i=0;i<3;i++){
-    const angle=t+i*(Math.PI*2/3);
-    const rx=W*0.5+Math.cos(angle)*W*0.28;
-    const ry=H*0.5+Math.sin(angle*0.7)*H*0.2;
-    const r=60+i*30;
-    ctx.strokeStyle=`rgba(0,255,136,${0.04+i*0.02})`;
-    ctx.lineWidth=0.5;
-    drawHex(rx,ry,r);
-  }
-  /* center large hex */
-  ctx.strokeStyle='rgba(0,255,136,0.06)';
-  ctx.lineWidth=1;
-  drawHex(W/2,H/2,200+Math.sin(t)*10);
-  drawHex(W/2,H/2,160+Math.cos(t*1.3)*8);
-
-  /* scan line sweep */
-  const scanY=(Date.now()*0.06)%H;
-  const grad=ctx.createLinearGradient(0,scanY-40,0,scanY+4);
-  grad.addColorStop(0,'rgba(0,255,136,0)');
-  grad.addColorStop(1,'rgba(0,255,136,0.04)');
-  ctx.fillStyle=grad;
-  ctx.fillRect(0,scanY-40,W,44);
-
+  for(let i=0;i<3;i++){const angle=t+i*(Math.PI*2/3);const rx=W*0.5+Math.cos(angle)*W*0.28;const ry=H*0.5+Math.sin(angle*0.7)*H*0.2;const r=60+i*30;ctx.strokeStyle=`rgba(0,255,136,${0.04+i*0.02})`;ctx.lineWidth=0.5;drawHex(rx,ry,r);}
+  ctx.strokeStyle='rgba(0,255,136,0.06)';ctx.lineWidth=1;drawHex(W/2,H/2,200+Math.sin(t)*10);drawHex(W/2,H/2,160+Math.cos(t*1.3)*8);
+  const scanY=(Date.now()*0.06)%H;const grad=ctx.createLinearGradient(0,scanY-40,0,scanY+4);grad.addColorStop(0,'rgba(0,255,136,0)');grad.addColorStop(1,'rgba(0,255,136,0.04)');ctx.fillStyle=grad;ctx.fillRect(0,scanY-40,W,44);
   requestAnimationFrame(drawBg);
 }
-
-function drawHex(cx,cy,r){
-  ctx.beginPath();
-  for(let i=0;i<6;i++){
-    const a=Math.PI/180*(60*i-30);
-    i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
-  }
-  ctx.closePath();ctx.stroke();
-}
+function drawHex(cx,cy,r){ctx.beginPath();for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}ctx.closePath();ctx.stroke();}
 drawBg();
 
 /* ── CLOCK ── */
@@ -592,29 +631,14 @@ setInterval(()=>{
 },1000);
 
 /* ── INTEL FEED ── */
-const intelLines=[
-  'BTC dominance 54.2%','ETH L2 TVL +12%','DeFi flows rotating','SOL ecosystem active','RWA tokenization surge','Institutional BTC buying','Stablecoin volume up','AI+crypto narrative hot','VC deploying Q2 dry powder','Base chain TVL record'
-];
+const intelLines=['BTC dominance 54.2%','ETH L2 TVL +12%','DeFi flows rotating','SOL ecosystem active','RWA tokenization surge','Institutional BTC buying','Stablecoin volume up','AI+crypto narrative hot','VC deploying Q2 dry powder','Base chain TVL record'];
 let intelIdx=0;
-function addIntel(){
-  const el=document.getElementById('intelFeed');
-  const t=new Date().toTimeString().slice(0,5);
-  el.innerHTML=`<span style="color:rgba(0,255,136,0.4)">${t}</span> ${intelLines[intelIdx%intelLines.length]}<br>`+el.innerHTML;
-  if(el.children.length>15)el.removeChild(el.lastChild);
-  intelIdx++;
-}
-addIntel();
-setInterval(addIntel,4000);
+function addIntel(){const el=document.getElementById('intelFeed');const t=new Date().toTimeString().slice(0,5);el.innerHTML=`<span style="color:rgba(0,255,136,0.4)">${t}</span> ${intelLines[intelIdx%intelLines.length]}<br>`+el.innerHTML;if(el.innerHTML.split('<br>').length>15)el.innerHTML=el.innerHTML.split('<br>').slice(0,15).join('<br>');intelIdx++;}
+addIntel();setInterval(addIntel,4000);
 
 /* ── AGENT SYSTEM ── */
 const WORKER='https://lattice-agent.latticecollective-io.workers.dev/v1/messages';
-let memory={};
-let leads=[];
-let logs=[];
-let metrics={runs:0,posts:0,leads:0,pipeline:0,errors:0};
-let lastOutput='';
-let activeAgentId=null;
-
+let memory={};let leads=[];let logs=[];let metrics={runs:0,posts:0,leads:0,pipeline:0,errors:0};let lastOutput='';let activeAgentId=null;
 const AGENTS={
   research:{name:'MARKET RESEARCH',system:`You are the Market Research Agent for Lattice Collective, a crypto and digital asset investment advisory company. Research current Web3, DeFi, and crypto market trends using live web search. Return a structured brief: top 3 trends, key signals, recommended content angles. Be sharp and data-driven.`,useSearch:true},
   strategy:{name:'STRATEGY',system:`You are the Strategy Agent for Lattice Collective. Analyze the current Web3/DeFi/crypto market and generate strategic advisory angles, positioning ideas, and opportunity analysis that attract high-value clients. Use research context if provided. Output sharp, actionable strategic insights.`},
@@ -623,206 +647,110 @@ const AGENTS={
   email:{name:'CLIENT EMAIL',system:`You are the Client Email Agent for Lattice Collective. Draft a professional warm response to a new inbound lead interested in Lattice Collective's advisory services. Acknowledge interest, highlight positioning, propose a discovery call. Sign off as Lattice Collective team. Under 200 words.`}
 };
 
-function selectAgent(id){
-  document.querySelectorAll('.agent-item').forEach(el=>el.classList.remove('active'));
-  document.getElementById('ai-'+id).classList.add('active');
-  activeAgentId=id;
-  document.getElementById('activeAgentTitle').textContent='// '+AGENTS[id].name+' AGENT';
-  if(memory[id]){
-    document.getElementById('outputBox').textContent=memory[id];
-    document.getElementById('actionRow').style.display='flex';
-    lastOutput=memory[id];
-  }
-  switchTab('output');
-}
-
-function setAgentStatus(id,state,text){
-  const st=document.getElementById('st-'+id);
-  const rb=document.getElementById('rb-'+id);
-  const ai=document.getElementById('ai-'+id);
-  st.textContent=text;
-  st.className='agent-state'+(state==='running'?' run':state==='done'?' done':state==='error'?' err':'');
-  rb.disabled=state==='running';
-  ai.classList.remove('active','running');
-  if(state==='running')ai.classList.add('running');
-  else if(state==='done')ai.classList.add('active');
-}
-
-function addLog(agent,msg){
-  const t=new Date().toTimeString().slice(0,5);
-  logs.unshift({t,agent,msg});
-  renderLog();
-}
-
-function renderLog(){
-  const el=document.getElementById('logList');
-  if(!logs.length){el.innerHTML='<div style="font-family:Share Tech Mono,monospace;font-size:9px;color:rgba(0,255,136,0.25);">&gt; NO ACTIVITY LOGGED</div>';return;}
-  el.innerHTML=logs.slice(0,40).map(l=>`<div class="log-entry"><span class="log-time">${l.t}</span><span class="log-agent-name">${l.agent}</span><span class="log-msg">${l.msg}</span></div>`).join('');
-}
-
-function updateMetrics(){
-  document.getElementById('metRuns').textContent=metrics.runs;
-  document.getElementById('metPosts').textContent=metrics.posts;
-  document.getElementById('metLeads').textContent=metrics.leads;
-  document.getElementById('metPipeline').textContent=metrics.pipeline;
-  document.getElementById('errCount').textContent=metrics.errors;
-}
-
-function updateMemoryPanel(id,text){
-  const el=document.getElementById('mem-'+id);
-  const txt=document.getElementById('memtxt-'+id);
-  el.classList.add('has-data');
-  txt.textContent=text.slice(0,60)+'...';
-}
+function selectAgent(id){document.querySelectorAll('.agent-item').forEach(el=>el.classList.remove('active'));document.getElementById('ai-'+id).classList.add('active');activeAgentId=id;document.getElementById('activeAgentTitle').textContent='// '+AGENTS[id].name+' AGENT';if(memory[id]){document.getElementById('outputBox').textContent=memory[id];document.getElementById('actionRow').style.display='flex';lastOutput=memory[id];}switchTab('output');}
+function setAgentStatus(id,state,text){const st=document.getElementById('st-'+id);const rb=document.getElementById('rb-'+id);const ai=document.getElementById('ai-'+id);st.textContent=text;st.className='agent-state'+(state==='running'?' run':state==='done'?' done':state==='error'?' err':'');rb.disabled=state==='running';ai.classList.remove('active','running');if(state==='running')ai.classList.add('running');else if(state==='done')ai.classList.add('active');}
+function addLog(agent,msg){const t=new Date().toTimeString().slice(0,5);logs.unshift({t,agent,msg});renderLog();}
+function renderLog(){const el=document.getElementById('logList');if(!logs.length){el.innerHTML='<div style="font-family:Share Tech Mono,monospace;font-size:9px;color:rgba(0,255,136,0.25);">&gt; NO ACTIVITY LOGGED</div>';return;}
+const agentColors={'MARKET RESEARCH':'#00ff88','STRATEGY':'#40c4ff','X CONTENT':'#b388ff','LINKEDIN':'#ffd740','CLIENT EMAIL':'#ff5252','SYSTEM':'#18ffff','PIPELINE':'#ffd740','TRADING BOT':'#40c4ff'};
+el.innerHTML=logs.slice(0,40).map(l=>`<div class="log-entry"><span class="log-time">${l.t}</span><span class="log-agent-name" style="color:${agentColors[l.agent]||'#ffcc00'}">${l.agent}</span><span class="log-msg">${l.msg}</span></div>`).join('');}
+function updateMetrics(){document.getElementById('metRuns').textContent=metrics.runs;document.getElementById('metPosts').textContent=metrics.posts;document.getElementById('metLeads').textContent=metrics.leads;document.getElementById('metPipeline').textContent=metrics.pipeline;document.getElementById('errCount').textContent=metrics.errors;}
+function updateMemoryPanel(id,text){const el=document.getElementById('mem-'+id);const txt=document.getElementById('memtxt-'+id);el.classList.add('has-data');txt.textContent=text.slice(0,60)+'...';}
 
 async function runAgent(id){
-  const cfg=AGENTS[id];
-  const topic=document.getElementById('topicInput').value.trim();
-  setAgentStatus(id,'running','RUNNING...');
-  selectAgent(id);
-  addLog(cfg.name,'INITIATED');
-
-  const ob=document.getElementById('outputBox');
-  ob.innerHTML=`<span class="output-loading"><span class="spin"></span>AGENT ${cfg.name} PROCESSING...</span>`;
-  document.getElementById('actionRow').style.display='none';
-
-  const parts=[];
-  if(topic)parts.push('Mission context: '+topic);
-  if(memory.research&&id!=='research')parts.push('Market Research Intel:\n'+memory.research.slice(0,700));
-  if(memory.strategy&&['xcontent','linkedin','email'].includes(id))parts.push('Strategy Brief:\n'+memory.strategy.slice(0,500));
-
+  const cfg=AGENTS[id];const topic=document.getElementById('topicInput').value.trim();
+  setAgentStatus(id,'running','RUNNING...');selectAgent(id);addLog(cfg.name,'INITIATED');
+  const ob=document.getElementById('outputBox');ob.innerHTML=`<span class="output-loading"><span class="spin"></span>AGENT ${cfg.name} PROCESSING...</span>`;document.getElementById('actionRow').style.display='none';
+  const parts=[];if(topic)parts.push('Mission context: '+topic);if(memory.research&&id!=='research')parts.push('Market Research Intel:\n'+memory.research.slice(0,700));if(memory.strategy&&['xcontent','linkedin','email'].includes(id))parts.push('Strategy Brief:\n'+memory.strategy.slice(0,500));
   const userMsg=parts.length?parts.join('\n\n')+'\n\nExecute your mission now.':'Execute your mission now based on current Web3/DeFi/crypto market conditions.';
-
   try{
     const body={model:'claude-sonnet-4-6',max_tokens:1000,system:cfg.system,messages:[{role:'user',content:userMsg}]};
     if(cfg.useSearch)body.tools=[{type:'web_search_20250305',name:'web_search'}];
-
     let res;
-    try{
-      res=await fetch(WORKER,{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'anthropic-version':'2023-06-01'
-        },
-        body:JSON.stringify(body),
-        mode:'cors'
-      });
-    }catch(netErr){
-      throw new Error('Network error — check Cloudflare Worker is live: '+netErr.message);
-    }
-
-    if(!res.ok){
-      let errMsg='Worker responded '+res.status;
-      try{const ed=await res.json();errMsg=ed.error?.message||errMsg;}catch(e){}
-      throw new Error(errMsg);
-    }
-
-    const data=await res.json();
-
-    if(data.error)throw new Error(data.error.message||'API error');
-
-    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
-    if(!text)throw new Error('Empty response');
-
-    lastOutput=text;
-    memory[id]=text;
-    ob.textContent=text;
-    document.getElementById('actionRow').style.display='flex';
-    setAgentStatus(id,'done','COMPLETE');
-    metrics.runs++;
-    if(id==='xcontent'||id==='linkedin')metrics.posts++;
-    updateMetrics();
-    updateMemoryPanel(id,text);
-    addLog(cfg.name,'MISSION COMPLETE');
-  }catch(err){
-    ob.innerHTML=`<span style="color:#ff4444">&gt; ERROR: ${err.message}</span>`;
-    setAgentStatus(id,'error','ERROR');
-    metrics.errors++;
-    updateMetrics();
-    addLog(cfg.name,'ERROR: '+err.message);
-  }
+    try{res=await fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},body:JSON.stringify(body),mode:'cors'});}catch(netErr){throw new Error('Network error: '+netErr.message);}
+    if(!res.ok){let errMsg='Worker responded '+res.status;try{const ed=await res.json();errMsg=ed.error?.message||errMsg;}catch(e){}throw new Error(errMsg);}
+    const data=await res.json();if(data.error)throw new Error(data.error.message||'API error');
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();if(!text)throw new Error('Empty response');
+    lastOutput=text;memory[id]=text;ob.textContent=text;document.getElementById('actionRow').style.display='flex';
+    setAgentStatus(id,'done','COMPLETE');metrics.runs++;if(id==='xcontent'||id==='linkedin')metrics.posts++;updateMetrics();updateMemoryPanel(id,text);addLog(cfg.name,'MISSION COMPLETE');
+  }catch(err){ob.innerHTML=`<span style="color:#ff4444">&gt; ERROR: ${err.message}</span>`;setAgentStatus(id,'error','ERROR');metrics.errors++;updateMetrics();addLog(cfg.name,'ERROR: '+err.message);}
 }
 
-async function runAllAgents(){
-  const btn=document.getElementById('runAllBtn');
-  btn.disabled=true;
-  btn.textContent='▶ EXECUTING SEQUENCE...';
-  addLog('SYSTEM','FULL AGENT SEQUENCE INITIATED');
-  for(const id of['research','strategy','xcontent','linkedin','email']){
-    await runAgent(id);
-    await new Promise(r=>setTimeout(r,600));
-  }
-  btn.disabled=false;
-  btn.textContent='▶ INITIATE ALL AGENTS';
-  addLog('SYSTEM','ALL AGENTS MISSION COMPLETE');
-}
-
-function copyOut(type){
-  let text=lastOutput;
-  if(type==='x'&&memory.xcontent)text=memory.xcontent;
-  if(type==='li'&&memory.linkedin)text=memory.linkedin;
-  navigator.clipboard.writeText(text).catch(()=>{});
-  const ids={x:'copyXBtn',li:'copyLIBtn'};
-  if(ids[type]){
-    const b=document.getElementById(ids[type]);
-    b.classList.add('success');b.textContent='✓ COPIED';
-    setTimeout(()=>{b.classList.remove('success');b.textContent=type==='x'?'◉ COPY FOR BUFFER (X)':'◆ COPY FOR LINKEDIN';},1500);
-  }
-  addLog('SYSTEM','OUTPUT COPIED TO CLIPBOARD');
-}
-
+async function runAllAgents(){const btn=document.getElementById('runAllBtn');btn.disabled=true;btn.textContent='▶ EXECUTING SEQUENCE...';addLog('SYSTEM','FULL AGENT SEQUENCE INITIATED');for(const id of['research','strategy','xcontent','linkedin','email']){await runAgent(id);await new Promise(r=>setTimeout(r,600));}btn.disabled=false;btn.textContent='▶ INITIATE ALL AGENTS';addLog('SYSTEM','ALL AGENTS MISSION COMPLETE');}
+function copyOut(type){let text=lastOutput;if(type==='x'&&memory.xcontent)text=memory.xcontent;if(type==='li'&&memory.linkedin)text=memory.linkedin;navigator.clipboard.writeText(text).catch(()=>{});const ids={x:'copyXBtn',li:'copyLIBtn'};if(ids[type]){const b=document.getElementById(ids[type]);b.classList.add('success');b.textContent='✓ COPIED';setTimeout(()=>{b.classList.remove('success');b.textContent=type==='x'?'◉ COPY FOR BUFFER (X)':'◆ COPY FOR LINKEDIN';},1500);}addLog('SYSTEM','OUTPUT COPIED TO CLIPBOARD');}
 function saveMemory(){addLog('SYSTEM','OUTPUT COMMITTED TO AGENT MEMORY');}
 
-/* pipeline */
+/* ── PIPELINE ── */
 const STAGES=['new','contacted','replied','closed'];
 const STAGE_LABELS={new:'NEW LEAD',contacted:'CONTACTED',replied:'REPLIED',closed:'CLOSED'};
+function renderPipeline(){const tbody=document.getElementById('pipeBody');if(!leads.length){tbody.innerHTML='<tr><td colspan="4" style="font-family:Share Tech Mono,monospace;font-size:9px;color:rgba(0,255,136,0.25);padding:16px 12px;">&gt; NO LEADS IN PIPELINE.</td></tr>';metrics.leads=0;metrics.pipeline=0;}else{tbody.innerHTML=leads.map((l,i)=>`<tr><td style="font-weight:600">${l.name}</td><td style="font-family:Share Tech Mono,monospace;font-size:9px;color:rgba(0,255,136,0.6);">${l.channel}</td><td><span class="stage-pill stage-${l.stage}">${STAGE_LABELS[l.stage]}</span></td><td><select class="stage-sel" onchange="updateStage(${i},this.value)">${STAGES.map(s=>`<option value="${s}"${l.stage===s?' selected':''}>${STAGE_LABELS[s]}</option>`).join('')}</select></td></tr>`).join('');metrics.leads=leads.filter(l=>l.stage==='new').length;metrics.pipeline=leads.filter(l=>l.stage!=='closed').length;}updateMetrics();}
+function addLead(){const name=document.getElementById('newName').value.trim();const chan=document.getElementById('newChan').value.trim();if(!name)return;leads.push({name,channel:chan||'UNKNOWN',stage:'new'});document.getElementById('newName').value='';document.getElementById('newChan').value='';renderPipeline();addLog('PIPELINE','NEW LEAD: '+name);}
+function updateStage(i,stage){leads[i].stage=stage;renderPipeline();addLog('PIPELINE',leads[i].name+' → '+STAGE_LABELS[stage]);}
+function switchTab(tab){document.querySelectorAll('.ptab').forEach((b,i)=>b.classList.toggle('active',['output','pipeline','log'][i]===tab));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.getElementById('tp-'+tab).classList.add('active');}
 
-function renderPipeline(){
-  const tbody=document.getElementById('pipeBody');
-  if(!leads.length){
-    tbody.innerHTML='<tr><td colspan="4" style="font-family:Share Tech Mono,monospace;font-size:9px;color:rgba(0,255,136,0.25);padding:16px 12px;">&gt; NO LEADS IN PIPELINE. AGENTS ARE WORKING TO ATTRACT THEM.</td></tr>';
-    metrics.leads=0;metrics.pipeline=0;
-  }else{
-    tbody.innerHTML=leads.map((l,i)=>`
-      <tr>
-        <td style="font-weight:600">${l.name}</td>
-        <td style="font-family:Share Tech Mono,monospace;font-size:9px;color:rgba(0,255,136,0.6);">${l.channel}</td>
-        <td><span class="stage-pill stage-${l.stage}">${STAGE_LABELS[l.stage]}</span></td>
-        <td><select class="stage-sel" onchange="updateStage(${i},this.value)">${STAGES.map(s=>`<option value="${s}"${l.stage===s?' selected':''}>${STAGE_LABELS[s]}</option>`).join('')}</select></td>
-      </tr>`).join('');
-    metrics.leads=leads.filter(l=>l.stage==='new').length;
-    metrics.pipeline=leads.filter(l=>l.stage!=='closed').length;
-  }
-  updateMetrics();
+/* ── TRADING BOT SYNC ── */
+function syncBotPanel(){
+  try{
+    const saved=localStorage.getItem('lattice_bot_state');
+    if(!saved)return;
+    const d=JSON.parse(saved);
+
+    // Status dot + mode badge
+    const dot=document.getElementById('bot-sdot');
+    const badge=document.getElementById('bot-mode-badge');
+    if(d.running&&d.mode==='live'){dot.className='bot-sdot live';badge.textContent='LIVE';badge.className='bot-mode-badge live';}
+    else if(d.running&&d.mode==='paper'){dot.className='bot-sdot paper';badge.textContent='PAPER';badge.className='bot-mode-badge paper';}
+    else{dot.className='bot-sdot offline';badge.textContent='OFFLINE';badge.className='bot-mode-badge offline';}
+
+    // Prices
+    if(d.prices){
+      const btc=d.prices['BTC-USDC'];const eth=d.prices['ETH-USDC'];const sol=d.prices['SOL-USDC'];
+      if(btc)document.getElementById('bp-btc').textContent='$'+Math.round(btc).toLocaleString();
+      if(eth)document.getElementById('bp-eth').textContent='$'+parseFloat(eth).toFixed(0);
+      if(sol)document.getElementById('bp-sol').textContent='$'+parseFloat(sol).toFixed(1);
+    }
+
+    // P&L
+    const pnl=d.pnl||0;
+    const pnlEl=document.getElementById('bp-pnl');
+    pnlEl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2);
+    pnlEl.className='bot-stat-val '+(pnl>=0?'pos':'neg');
+
+    // Topbar P&L
+    const topPnl=document.getElementById('metBotPnl');
+    topPnl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2);
+    topPnl.style.color=pnl>=0?'#00ff88':'#ff5252';
+
+    // Win rate
+    const wr=d.trades>0?Math.round((d.wins/d.trades)*100):0;
+    document.getElementById('bp-wr').textContent=wr+'%';
+    document.getElementById('bp-trades').textContent=d.trades||0;
+    document.getElementById('bp-uptime').textContent=d.uptime||'--:--';
+
+    // Recent trades
+    const list=document.getElementById('bp-trades-list');
+    if(d.recentTrades&&d.recentTrades.length>0){
+      list.innerHTML=d.recentTrades.slice(0,6).map(t=>`
+        <div class="bot-trade-row">
+          <span>${t.time}</span>
+          <span class="bot-trade-${t.side}">${t.side.toUpperCase()}</span>
+          <span>${t.pair?t.pair.split('/')[0]:''}</span>
+          <span class="${parseFloat(t.pnl)>=0?'bot-trade-pnl-pos':'bot-trade-pnl-neg'}">${parseFloat(t.pnl)>=0?'+':'-'}$${Math.abs(parseFloat(t.pnl)).toFixed(2)}</span>
+        </div>`).join('');
+    } else if(d.running){
+      list.innerHTML='<div class="bot-empty-msg">&gt; WAITING FOR FILLS...</div>';
+    }
+  }catch(e){}
 }
 
-function addLead(){
-  const name=document.getElementById('newName').value.trim();
-  const chan=document.getElementById('newChan').value.trim();
-  if(!name)return;
-  leads.push({name,channel:chan||'UNKNOWN',stage:'new'});
-  document.getElementById('newName').value='';
-  document.getElementById('newChan').value='';
-  renderPipeline();
-  addLog('PIPELINE','NEW LEAD: '+name);
-}
+// Sync every 5 seconds
+setInterval(syncBotPanel,5000);
+syncBotPanel();
 
-function updateStage(i,stage){
-  leads[i].stage=stage;
-  renderPipeline();
-  addLog('PIPELINE',leads[i].name+' → '+STAGE_LABELS[stage]);
-}
-
-function switchTab(tab){
-  document.querySelectorAll('.ptab').forEach((b,i)=>b.classList.toggle('active',['output','pipeline','log'][i]===tab));
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('tp-'+tab).classList.add('active');
-}
-
+/* ── INIT ── */
 renderLog();renderPipeline();updateMetrics();
 addLog('SYSTEM','LATTICE COMMAND CENTER ONLINE');
 addLog('SYSTEM','ALL 5 AGENTS STANDING BY');
+addLog('TRADING BOT','PANEL ACTIVE — OPEN BOT TO START');
 </script>
 </body>
 </html>
