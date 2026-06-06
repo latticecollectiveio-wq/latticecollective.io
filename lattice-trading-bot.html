@@ -6,701 +6,137 @@
 <title>Lattice Trading Bot</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
-
   :root {
-    --bg: #080c0f;
-    --bg2: #0d1317;
-    --bg3: #121a1f;
-    --card: #0f1923;
-    --border: #1a2830;
-    --border2: #243540;
-    --green: #00e676;
-    --green2: #00c853;
-    --green3: #1de9b6;
-    --red: #ff5252;
-    --yellow: #ffd740;
-    --blue: #40c4ff;
-    --muted: #4a6572;
-    --text: #cfd8dc;
-    --text2: #78909c;
-    --accent: #00e676;
+    --bg:#080c0f;--bg2:#0d1317;--bg3:#121a1f;--card:#0f1923;
+    --border:#1a2830;--border2:#243540;--green:#00e676;--green2:#00c853;
+    --green3:#1de9b6;--red:#ff5252;--yellow:#ffd740;--blue:#40c4ff;
+    --muted:#4a6572;--text:#cfd8dc;--text2:#78909c;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Scanline effect */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-    pointer-events: none;
-    z-index: 1000;
-  }
-
-  .mono { font-family: 'Space Mono', monospace; }
-
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 24px;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-icon {
-    width: 32px; height: 32px;
-    border: 1.5px solid var(--green);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .logo-icon::before {
-    content: '◈';
-    color: var(--green);
-    font-size: 16px;
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  .logo-text {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--green);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .logo-sub {
-    font-size: 9px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .header-status {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    font-family: 'Space Mono', monospace;
-    letter-spacing: 1px;
-    color: var(--text2);
-    text-transform: uppercase;
-  }
-
-  .status-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
-
-  .status-dot.live {
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
-    animation: blink 1.5s ease-in-out infinite;
-  }
-
-  .status-dot.paper {
-    background: var(--yellow);
-    box-shadow: 0 0 6px var(--yellow);
-  }
-
-  .status-dot.stopped {
-    background: var(--red);
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  /* Main layout */
-  .main {
-    padding: 20px 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  /* Setup panel */
-  #setup-panel {
-    max-width: 600px;
-    margin: 40px auto;
-  }
-
-  .setup-title {
-    font-family: 'Space Mono', monospace;
-    font-size: 18px;
-    color: var(--green);
-    margin-bottom: 6px;
-    letter-spacing: 1px;
-  }
-
-  .setup-sub {
-    color: var(--text2);
-    font-size: 12px;
-    margin-bottom: 30px;
-    line-height: 1.6;
-  }
-
-  .form-group {
-    margin-bottom: 18px;
-  }
-
-  .form-label {
-    display: block;
-    font-size: 10px;
-    font-family: 'Space Mono', monospace;
-    color: var(--green3);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .form-hint {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
-  input[type="text"], input[type="number"], textarea, select {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    padding: 10px 12px;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    border-radius: 4px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
-    border-color: var(--green);
-  }
-
-  textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
-
-  select option {
-    background: var(--bg3);
-  }
-
-  .row2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  .row3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-  }
-
-  /* Mode toggle */
-  .mode-toggle {
-    display: flex;
-    gap: 0;
-    border: 1px solid var(--border2);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-
-  .mode-btn {
-    flex: 1;
-    padding: 10px;
-    background: var(--bg3);
-    border: none;
-    color: var(--text2);
-    cursor: pointer;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    border-right: 1px solid var(--border2);
-  }
-
-  .mode-btn:last-child { border-right: none; }
-
-  .mode-btn.active {
-    background: var(--bg2);
-    color: var(--yellow);
-    border-bottom: 2px solid var(--yellow);
-  }
-
-  .mode-btn.active.live-mode {
-    color: var(--green);
-    border-bottom-color: var(--green);
-  }
-
-  /* Buttons */
-  .btn {
-    padding: 12px 24px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background: var(--green2);
-    color: #000;
-    font-weight: 700;
-  }
-
-  .btn-primary:hover {
-    background: var(--green);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(0, 230, 118, 0.3);
-  }
-
-  .btn-danger {
-    background: transparent;
-    color: var(--red);
-    border: 1px solid var(--red);
-  }
-
-  .btn-danger:hover {
-    background: rgba(255, 82, 82, 0.1);
-  }
-
-  .btn-secondary {
-    background: transparent;
-    color: var(--text2);
-    border: 1px solid var(--border2);
-  }
-
-  .btn-secondary:hover {
-    border-color: var(--text2);
-    color: var(--text);
-  }
-
-  .btn-full { width: 100%; margin-top: 10px; }
-
-  /* Warning box */
-  .warn-box {
-    background: rgba(255, 215, 64, 0.05);
-    border: 1px solid rgba(255, 215, 64, 0.3);
-    border-radius: 4px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-size: 11px;
-    color: var(--yellow);
-    line-height: 1.6;
-  }
-
-  .warn-box.green {
-    background: rgba(0, 230, 118, 0.05);
-    border-color: rgba(0, 230, 118, 0.3);
-    color: var(--green3);
-  }
-
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;}
+  body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:1000;}
+  .mono{font-family:'Space Mono',monospace;}
+  .header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-icon{width:32px;height:32px;border:1.5px solid var(--green);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+  .logo-icon::before{content:'◈';color:var(--green);font-size:16px;animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+  .logo-text{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--green);letter-spacing:2px;text-transform:uppercase;}
+  .logo-sub{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  .header-status{display:flex;align-items:center;gap:16px;}
+  .status-badge{display:flex;align-items:center;gap:6px;font-size:10px;font-family:'Space Mono',monospace;letter-spacing:1px;color:var(--text2);text-transform:uppercase;}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+  .status-dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 1.5s infinite;}
+  .status-dot.paper{background:var(--yellow);box-shadow:0 0 6px var(--yellow);}
+  .status-dot.stopped{background:var(--red);}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  .ticker-bar{display:flex;gap:24px;padding:8px 24px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;font-size:10px;}
+  .ticker-item{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+  .ticker-pair{color:var(--text2);}
+  .ticker-price{color:var(--text);font-weight:700;}
+  .ticker-change.up{color:var(--green);}
+  .ticker-change.down{color:var(--red);}
+  .main{padding:20px 24px;max-width:1400px;margin:0 auto;}
+  /* Setup */
+  #setup-panel{max-width:600px;margin:40px auto;}
+  .setup-title{font-family:'Space Mono',monospace;font-size:18px;color:var(--green);margin-bottom:6px;letter-spacing:1px;}
+  .setup-sub{color:var(--text2);font-size:12px;margin-bottom:30px;line-height:1.6;}
+  .form-group{margin-bottom:18px;}
+  .form-label{display:block;font-size:10px;font-family:'Space Mono',monospace;color:var(--green3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+  .form-hint{font-size:10px;color:var(--muted);margin-top:4px;}
+  input[type="text"],input[type="number"],textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-family:'Space Mono',monospace;font-size:11px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+  input:focus,textarea:focus,select:focus{border-color:var(--green);}
+  textarea{resize:vertical;min-height:80px;}
+  select option{background:var(--bg3);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .mode-toggle{display:flex;border:1px solid var(--border2);border-radius:4px;overflow:hidden;margin-bottom:24px;}
+  .mode-btn{flex:1;padding:10px;background:var(--bg3);border:none;color:var(--text2);cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;transition:all 0.2s;border-right:1px solid var(--border2);}
+  .mode-btn:last-child{border-right:none;}
+  .mode-btn.active{background:var(--bg2);color:var(--yellow);border-bottom:2px solid var(--yellow);}
+  .mode-btn.active.live-mode{color:var(--green);border-bottom-color:var(--green);}
+  .btn{padding:12px 24px;border:none;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border-radius:4px;transition:all 0.2s;}
+  .btn-primary{background:var(--green2);color:#000;font-weight:700;}
+  .btn-primary:hover{background:var(--green);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,230,118,0.3);}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);}
+  .btn-danger:hover{background:rgba(255,82,82,0.1);}
+  .btn-secondary{background:transparent;color:var(--text2);border:1px solid var(--border2);}
+  .btn-secondary:hover{border-color:var(--text2);color:var(--text);}
+  .btn-full{width:100%;margin-top:10px;}
+  .warn-box{background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.3);border-radius:4px;padding:12px 16px;margin-bottom:20px;font-size:11px;color:var(--yellow);line-height:1.6;}
+  .warn-box.green{background:rgba(0,230,118,0.05);border-color:rgba(0,230,118,0.3);color:var(--green3);}
+  .warn-box.red{background:rgba(255,82,82,0.05);border-color:rgba(255,82,82,0.3);color:var(--red);}
   /* Dashboard */
-  #dashboard-panel { display: none; }
-
-  /* Stats bar */
-  .stats-bar {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 14px 16px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--border2);
-  }
-
-  .stat-card.positive::before { background: var(--green); }
-  .stat-card.negative::before { background: var(--red); }
-  .stat-card.neutral::before { background: var(--blue); }
-  .stat-card.warning::before { background: var(--yellow); }
-
-  .stat-label {
-    font-size: 9px;
-    font-family: 'Space Mono', monospace;
-    color: var(--muted);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .stat-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .stat-value.green { color: var(--green); }
-  .stat-value.red { color: var(--red); }
-  .stat-value.yellow { color: var(--yellow); }
-  .stat-value.blue { color: var(--blue); }
-
-  .stat-change {
-    font-size: 9px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
-  /* Dashboard grid */
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 380px;
-    gap: 16px;
-  }
-
-  .panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .panel-title {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--green3);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .panel-badge {
-    font-size: 9px;
-    background: rgba(0, 230, 118, 0.15);
-    color: var(--green);
-    padding: 2px 6px;
-    border-radius: 2px;
-    font-family: 'Space Mono', monospace;
-  }
-
-  .panel-badge.yellow {
-    background: rgba(255, 215, 64, 0.15);
-    color: var(--yellow);
-  }
-
-  .panel-body { padding: 16px; }
-
-  /* Chart area */
-  .chart-area {
-    width: 100%;
-    height: 200px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  canvas { width: 100% !important; }
-
-  /* Trade log */
-  .trade-log {
-    max-height: 280px;
-    overflow-y: auto;
-  }
-
-  .trade-log::-webkit-scrollbar { width: 3px; }
-  .trade-log::-webkit-scrollbar-track { background: var(--bg); }
-  .trade-log::-webkit-scrollbar-thumb { background: var(--border2); }
-
-  .trade-row {
-    display: grid;
-    grid-template-columns: 70px 50px 1fr 80px 70px;
-    gap: 8px;
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--border);
-    font-size: 11px;
-    align-items: center;
-    transition: background 0.2s;
-  }
-
-  .trade-row:hover { background: rgba(255,255,255,0.02); }
-
-  .trade-row.buy .trade-side { color: var(--green); }
-  .trade-row.sell .trade-side { color: var(--red); }
-
-  .trade-time { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; }
-  .trade-pair { color: var(--blue); font-family: 'Space Mono', monospace; font-size: 10px; }
-  .trade-pnl.pos { color: var(--green); }
-  .trade-pnl.neg { color: var(--red); }
-  .trade-status { font-size: 9px; padding: 2px 6px; border-radius: 2px; text-align: center; font-family: 'Space Mono', monospace; }
-  .trade-status.filled { background: rgba(0,230,118,0.1); color: var(--green); }
-  .trade-status.pending { background: rgba(255,215,64,0.1); color: var(--yellow); }
-
-  /* Positions */
-  .position-row {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: 60px 1fr 80px 80px 70px;
-    gap: 8px;
-    align-items: center;
-    font-size: 11px;
-  }
-
-  .position-pair { font-family: 'Space Mono', monospace; color: var(--blue); font-size: 11px; }
-  .position-pnl.pos { color: var(--green); font-family: 'Space Mono', monospace; }
-  .position-pnl.neg { color: var(--red); font-family: 'Space Mono', monospace; }
-
-  /* Sidebar */
-  .sidebar-section {
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .sidebar-section:last-child { border-bottom: none; }
-
-  .sidebar-label {
-    font-size: 9px;
-    font-family: 'Space Mono', monospace;
-    color: var(--muted);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-
-  /* Grid levels display */
-  .grid-levels {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    max-height: 180px;
-    overflow-y: auto;
-  }
-
-  .grid-level {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 8px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-family: 'Space Mono', monospace;
-    transition: all 0.3s;
-  }
-
-  .grid-level.buy-level { background: rgba(0, 230, 118, 0.07); color: var(--green); }
-  .grid-level.sell-level { background: rgba(255, 82, 82, 0.07); color: var(--red); }
-  .grid-level.active { opacity: 1; }
-  .grid-level.inactive { opacity: 0.35; }
-  .grid-level.filled { opacity: 0.5; text-decoration: line-through; }
-
-  /* Controls */
-  .control-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-  }
-
-  /* Log terminal */
-  .log-terminal {
-    background: var(--bg);
-    border-radius: 4px;
-    padding: 12px;
-    max-height: 160px;
-    overflow-y: auto;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    line-height: 1.8;
-  }
-
-  .log-terminal::-webkit-scrollbar { width: 3px; }
-  .log-terminal::-webkit-scrollbar-thumb { background: var(--border2); }
-
-  .log-line { margin-bottom: 1px; }
-  .log-line .time { color: var(--muted); }
-  .log-line .info { color: var(--blue); }
-  .log-line .success { color: var(--green); }
-  .log-line .error { color: var(--red); }
-  .log-line .warn { color: var(--yellow); }
-
-  /* Pair selector */
-  .pair-tabs {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 14px;
-  }
-
-  .pair-tab {
-    padding: 5px 12px;
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--text2);
-    background: transparent;
-    transition: all 0.2s;
-  }
-
-  .pair-tab.active {
-    border-color: var(--green);
-    color: var(--green);
-    background: rgba(0, 230, 118, 0.08);
-  }
-
-  /* Paper mode banner */
-  .paper-banner {
-    background: rgba(255, 215, 64, 0.08);
-    border: 1px solid rgba(255, 215, 64, 0.3);
-    border-radius: 4px;
-    padding: 8px 16px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--yellow);
-    font-family: 'Space Mono', monospace;
-  }
-
-  /* Ticker */
-  .ticker-bar {
-    display: flex;
-    gap: 24px;
-    padding: 8px 24px;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-  }
-
-  .ticker-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-  }
-
-  .ticker-pair { color: var(--text2); }
-  .ticker-price { color: var(--text); font-weight: 700; }
-  .ticker-change.up { color: var(--green); }
-  .ticker-change.down { color: var(--red); }
-
-  /* Responsive */
-  @media (max-width: 1100px) {
-    .stats-bar { grid-template-columns: repeat(3, 1fr); }
-    .dashboard-grid { grid-template-columns: 1fr; }
-  }
-
-  @media (max-width: 600px) {
-    .stats-bar { grid-template-columns: repeat(2, 1fr); }
-    .header { padding: 10px 14px; }
-    .main { padding: 14px; }
-  }
-
-  /* Spinner */
-  .spinner {
-    display: inline-block;
-    width: 12px; height: 12px;
-    border: 2px solid var(--border2);
-    border-top-color: var(--green);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Animated number */
-  .num-flash {
-    animation: flash 0.4s ease;
-  }
-
-  @keyframes flash {
-    0% { color: var(--green3); }
-    100% { }
-  }
-
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-    font-size: 11px;
-  }
-
-  .empty-state .icon { font-size: 24px; margin-bottom: 8px; }
-
-  select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a6572'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 28px;
-  }
+  #dashboard-panel{display:none;}
+  .stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border2);}
+  .stat-card.positive::before{background:var(--green);}
+  .stat-card.negative::before{background:var(--red);}
+  .stat-card.neutral::before{background:var(--blue);}
+  .stat-card.warning::before{background:var(--yellow);}
+  .stat-label{font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+  .stat-value{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--text);line-height:1;}
+  .stat-value.green{color:var(--green);}
+  .stat-value.red{color:var(--red);}
+  .stat-value.yellow{color:var(--yellow);}
+  .stat-value.blue{color:var(--blue);}
+  .stat-change{font-size:9px;color:var(--muted);margin-top:4px;}
+  .dashboard-grid{display:grid;grid-template-columns:1fr 1fr 380px;gap:16px;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+  .panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+  .panel-title{font-family:'Space Mono',monospace;font-size:10px;color:var(--green3);letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+  .panel-badge{font-size:9px;background:rgba(0,230,118,0.15);color:var(--green);padding:2px 6px;border-radius:2px;font-family:'Space Mono',monospace;}
+  .panel-badge.yellow{background:rgba(255,215,64,0.15);color:var(--yellow);}
+  .panel-body{padding:16px;}
+  .chart-area{width:100%;height:200px;position:relative;overflow:hidden;}
+  canvas{width:100%!important;}
+  .trade-log{max-height:280px;overflow-y:auto;}
+  .trade-log::-webkit-scrollbar{width:3px;}
+  .trade-log::-webkit-scrollbar-thumb{background:var(--border2);}
+  .trade-row{display:grid;grid-template-columns:70px 50px 1fr 80px 70px;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:11px;align-items:center;}
+  .trade-row.buy .trade-side{color:var(--green);}
+  .trade-row.sell .trade-side{color:var(--red);}
+  .trade-time{color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;}
+  .trade-pair{color:var(--blue);font-family:'Space Mono',monospace;font-size:10px;}
+  .trade-pnl.pos{color:var(--green);}
+  .trade-pnl.neg{color:var(--red);}
+  .trade-status{font-size:9px;padding:2px 6px;border-radius:2px;text-align:center;font-family:'Space Mono',monospace;}
+  .trade-status.filled{background:rgba(0,230,118,0.1);color:var(--green);}
+  .sidebar-section{padding:16px;border-bottom:1px solid var(--border);}
+  .sidebar-section:last-child{border-bottom:none;}
+  .sidebar-label{font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
+  .grid-levels{display:flex;flex-direction:column;gap:3px;max-height:180px;overflow-y:auto;}
+  .grid-level{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:3px;font-size:10px;font-family:'Space Mono',monospace;}
+  .grid-level.buy-level{background:rgba(0,230,118,0.07);color:var(--green);}
+  .grid-level.sell-level{background:rgba(255,82,82,0.07);color:var(--red);}
+  .grid-level.filled{opacity:0.4;text-decoration:line-through;}
+  .control-row{display:flex;gap:8px;margin-top:16px;}
+  .log-terminal{background:var(--bg);border-radius:4px;padding:12px;max-height:160px;overflow-y:auto;font-family:'Space Mono',monospace;font-size:10px;line-height:1.8;}
+  .log-terminal::-webkit-scrollbar{width:3px;}
+  .log-terminal::-webkit-scrollbar-thumb{background:var(--border2);}
+  .log-line{margin-bottom:1px;}
+  .log-line .time{color:var(--muted);}
+  .log-line .info{color:var(--blue);}
+  .log-line .success{color:var(--green);}
+  .log-line .error{color:var(--red);}
+  .log-line .warn{color:var(--yellow);}
+  .pair-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .pair-tab{padding:5px 12px;border:1px solid var(--border2);border-radius:3px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);background:transparent;transition:all 0.2s;}
+  .pair-tab.active{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.08);}
+  .paper-banner{background:rgba(255,215,64,0.08);border:1px solid rgba(255,215,64,0.3);border-radius:4px;padding:8px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--yellow);font-family:'Space Mono',monospace;}
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:11px;}
+  .empty-state .icon{font-size:24px;margin-bottom:8px;}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a6572'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+  @media(max-width:1100px){.stats-bar{grid-template-columns:repeat(3,1fr);}.dashboard-grid{grid-template-columns:1fr;}}
+  @media(max-width:600px){.stats-bar{grid-template-columns:repeat(2,1fr);}.header{padding:10px 14px;}.main{padding:14px;}}
 </style>
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
   <div class="logo">
     <div class="logo-icon"></div>
@@ -710,7 +146,7 @@
     </div>
   </div>
   <div class="header-status">
-    <div class="status-badge" id="header-status">
+    <div class="status-badge">
       <div class="status-dot stopped" id="status-dot"></div>
       <span id="status-text">OFFLINE</span>
     </div>
@@ -720,24 +156,20 @@
   </div>
 </div>
 
-<!-- Ticker bar -->
-<div class="ticker-bar" id="ticker-bar">
-  <div class="ticker-item"><span class="ticker-pair">BTC/USDC</span><span class="ticker-price" id="t-btc">--</span><span class="ticker-change" id="tc-btc">--</span></div>
-  <div class="ticker-item"><span class="ticker-pair">ETH/USDC</span><span class="ticker-price" id="t-eth">--</span><span class="ticker-change" id="tc-eth">--</span></div>
-  <div class="ticker-item"><span class="ticker-pair">SOL/USDC</span><span class="ticker-price" id="t-sol">--</span><span class="ticker-change" id="tc-sol">--</span></div>
-  <div class="ticker-item" style="margin-left:auto; color: var(--muted)" id="ticker-time">--:--:--</div>
+<div class="ticker-bar">
+  <div class="ticker-item"><span class="ticker-pair">BTC/USDC</span><span class="ticker-price" id="t-btc">--</span><span class="ticker-change" id="tc-btc"></span></div>
+  <div class="ticker-item"><span class="ticker-pair">ETH/USDC</span><span class="ticker-price" id="t-eth">--</span><span class="ticker-change" id="tc-eth"></span></div>
+  <div class="ticker-item"><span class="ticker-pair">SOL/USDC</span><span class="ticker-price" id="t-sol">--</span><span class="ticker-change" id="tc-sol"></span></div>
+  <div class="ticker-item" style="margin-left:auto;color:var(--muted)" id="ticker-time">--:--:--</div>
 </div>
 
-<!-- SETUP PANEL -->
+<!-- SETUP -->
 <div class="main" id="setup-panel">
   <div class="setup-title">// CONFIGURE TRADING BOT</div>
-  <div class="setup-sub">Enter your Coinbase CDP API credentials and configure your grid trading parameters. Start with paper trading to test before going live.</div>
+  <div class="setup-sub">Configure your grid trading parameters. The bot runs 24/7 on Cloudflare — your phone can be off and it keeps trading.</div>
+  <div class="warn-box">⚠ PAPER TRADING enabled by default. Simulated trades only. Switch to LIVE on June 11.</div>
+  <div id="error-box" class="warn-box red" style="display:none"></div>
 
-  <div class="warn-box">
-    ⚠ PAPER TRADING is enabled by default. The bot will simulate trades without using real money. Switch to LIVE only when you are confident the strategy works.
-  </div>
-
-  <!-- Mode selector -->
   <div class="form-group">
     <div class="form-label">Trading Mode</div>
     <div class="mode-toggle">
@@ -746,194 +178,109 @@
     </div>
   </div>
 
-  <!-- API Credentials -->
   <div class="form-group">
     <label class="form-label">CDP API Key Name</label>
     <input type="text" id="api-key" placeholder="organizations/xxxxx/apiKeys/xxxxx" />
     <div class="form-hint">Starts with organizations/...</div>
   </div>
-
   <div class="form-group">
     <label class="form-label">CDP Private Key (Secret)</label>
     <textarea id="api-secret" placeholder="-----BEGIN EC PRIVATE KEY-----&#10;...&#10;-----END EC PRIVATE KEY-----"></textarea>
-    <div class="form-hint">Full private key including BEGIN/END headers</div>
   </div>
 
-  <!-- Strategy config -->
   <div class="row2">
     <div class="form-group">
       <label class="form-label">Trading Pair 1</label>
-      <select id="pair1">
-        <option value="BTC-USDC">BTC/USDC</option>
-        <option value="ETH-USDC" selected>ETH/USDC</option>
-        <option value="SOL-USDC">SOL/USDC</option>
-      </select>
+      <select id="pair1"><option value="BTC-USDC">BTC/USDC</option><option value="ETH-USDC" selected>ETH/USDC</option><option value="SOL-USDC">SOL/USDC</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Trading Pair 2</label>
-      <select id="pair2">
-        <option value="BTC-USDC" selected>BTC/USDC</option>
-        <option value="ETH-USDC">ETH/USDC</option>
-        <option value="SOL-USDC">SOL/USDC</option>
-        <option value="none">None</option>
-      </select>
+      <select id="pair2"><option value="BTC-USDC" selected>BTC/USDC</option><option value="ETH-USDC">ETH/USDC</option><option value="SOL-USDC">SOL/USDC</option><option value="none">None</option></select>
     </div>
   </div>
-
   <div class="row3">
     <div class="form-group">
       <label class="form-label">Capital (USD)</label>
-      <input type="number" id="capital" value="200" min="50" max="10000" />
-      <div class="form-hint">Total capital to deploy</div>
+      <input type="number" id="capital" value="200" min="50" />
     </div>
     <div class="form-group">
       <label class="form-label">Grid Levels</label>
       <input type="number" id="grid-levels" value="5" min="3" max="10" />
-      <div class="form-hint">Buy/sell grid steps</div>
     </div>
     <div class="form-group">
       <label class="form-label">Grid Spread %</label>
       <input type="number" id="grid-spread" value="1.0" min="0.3" max="5" step="0.1" />
-      <div class="form-hint">% between each level</div>
     </div>
   </div>
-
   <div class="row2">
     <div class="form-group">
       <label class="form-label">Stop Loss %</label>
       <input type="number" id="stop-loss" value="5" min="1" max="20" step="0.5" />
-      <div class="form-hint">Auto-stop if down this %</div>
     </div>
     <div class="form-group">
       <label class="form-label">Take Profit %</label>
       <input type="number" id="take-profit" value="3" min="0.5" max="20" step="0.5" />
-      <div class="form-hint">Lock in profit target</div>
     </div>
   </div>
-
-  <div id="live-warning" style="display:none" class="warn-box">
-    ⚡ LIVE MODE: Real money will be used. Ensure your Coinbase account has at least $<span id="capital-display">200</span> USDC available. The bot will execute real trades on your behalf.
-  </div>
-
-  <button class="btn btn-primary btn-full" onclick="startBot()" id="start-btn">
-    ▶ INITIALIZE BOT
-  </button>
+  <button class="btn btn-primary btn-full" onclick="startBot()" id="start-btn">▶ INITIALIZE BOT</button>
 </div>
 
-<!-- DASHBOARD PANEL -->
+<!-- DASHBOARD -->
 <div class="main" id="dashboard-panel">
-  <!-- Paper mode banner -->
   <div class="paper-banner" id="paper-banner">
     <span>📋 PAPER TRADING MODE — Simulated trades only. No real money at risk.</span>
     <button class="btn btn-secondary" style="padding:4px 12px;font-size:9px" onclick="switchToLive()">Switch to Live</button>
   </div>
 
-  <!-- Stats bar -->
   <div class="stats-bar">
-    <div class="stat-card positive">
-      <div class="stat-label">Total P&L</div>
-      <div class="stat-value green" id="stat-pnl">$0.00</div>
-      <div class="stat-change" id="stat-pnl-pct">+0.00%</div>
-    </div>
-    <div class="stat-card neutral">
-      <div class="stat-label">Capital</div>
-      <div class="stat-value blue" id="stat-capital">$200</div>
-      <div class="stat-change">Deployed</div>
-    </div>
-    <div class="stat-card neutral">
-      <div class="stat-label">Trades Today</div>
-      <div class="stat-value" id="stat-trades">0</div>
-      <div class="stat-change" id="stat-wins">0W / 0L</div>
-    </div>
-    <div class="stat-card positive">
-      <div class="stat-label">Win Rate</div>
-      <div class="stat-value green" id="stat-winrate">0%</div>
-      <div class="stat-change">Last 24h</div>
-    </div>
-    <div class="stat-card warning">
-      <div class="stat-label">Open Orders</div>
-      <div class="stat-value yellow" id="stat-orders">0</div>
-      <div class="stat-change">Grid levels</div>
-    </div>
-    <div class="stat-card neutral">
-      <div class="stat-label">Uptime</div>
-      <div class="stat-value" id="stat-uptime">00:00:00</div>
-      <div class="stat-change">Running</div>
-    </div>
+    <div class="stat-card positive"><div class="stat-label">Total P&L</div><div class="stat-value green" id="stat-pnl">$0.00</div><div class="stat-change" id="stat-pnl-pct">+0.00%</div></div>
+    <div class="stat-card neutral"><div class="stat-label">Capital</div><div class="stat-value blue" id="stat-capital">$200</div><div class="stat-change">Deployed</div></div>
+    <div class="stat-card neutral"><div class="stat-label">Trades Today</div><div class="stat-value" id="stat-trades">0</div><div class="stat-change" id="stat-wins">0W / 0L</div></div>
+    <div class="stat-card positive"><div class="stat-label">Win Rate</div><div class="stat-value green" id="stat-winrate">0%</div><div class="stat-change">Last 24h</div></div>
+    <div class="stat-card warning"><div class="stat-label">Open Orders</div><div class="stat-value yellow" id="stat-orders">0</div><div class="stat-change">Grid levels</div></div>
+    <div class="stat-card neutral"><div class="stat-label">Uptime</div><div class="stat-value" id="stat-uptime">00:00:00</div><div class="stat-change">Running</div></div>
   </div>
 
-  <!-- Dashboard grid -->
   <div class="dashboard-grid">
-
-    <!-- Left: Chart + Trades -->
     <div style="display:flex;flex-direction:column;gap:16px;">
-
-      <!-- Price chart -->
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">
-            // PRICE CHART
+          <div class="panel-title">// PRICE CHART
             <div class="pair-tabs" style="margin-bottom:0">
-              <button class="pair-tab active" onclick="switchPair('BTC-USDC',this)" id="tab-btc">BTC/USDC</button>
-              <button class="pair-tab" onclick="switchPair('ETH-USDC',this)" id="tab-eth">ETH/USDC</button>
-              <button class="pair-tab" onclick="switchPair('SOL-USDC',this)" id="tab-sol">SOL/USDC</button>
+              <button class="pair-tab active" onclick="switchPair('BTC-USDC',this)">BTC/USDC</button>
+              <button class="pair-tab" onclick="switchPair('ETH-USDC',this)">ETH/USDC</button>
+              <button class="pair-tab" onclick="switchPair('SOL-USDC',this)">SOL/USDC</button>
             </div>
           </div>
           <div style="font-family:'Space Mono',monospace;font-size:12px;" id="current-price">--</div>
         </div>
-        <div class="panel-body" style="padding:12px">
-          <div class="chart-area">
-            <canvas id="price-chart" height="180"></canvas>
-          </div>
-        </div>
+        <div class="panel-body" style="padding:12px"><div class="chart-area"><canvas id="price-chart" height="180"></canvas></div></div>
       </div>
-
-      <!-- Trade history -->
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">// TRADE HISTORY <span class="panel-badge" id="trade-count-badge">0</span></div>
         </div>
-        <div style="display:grid;grid-template-columns:70px 50px 1fr 80px 70px;gap:8px;padding:8px 16px;font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">
+        <div style="display:grid;grid-template-columns:70px 50px 1fr 80px 70px;gap:8px;padding:8px 16px;font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border)">
           <span>TIME</span><span>PAIR</span><span>SIDE / SIZE</span><span>P&L</span><span>STATUS</span>
         </div>
-        <div class="trade-log" id="trade-log">
-          <div class="empty-state"><div class="icon">◈</div>No trades yet. Bot is scanning markets...</div>
-        </div>
+        <div class="trade-log" id="trade-log"><div class="empty-state"><div class="icon">◈</div>Bot is running in cloud. Trades will appear here.</div></div>
       </div>
     </div>
 
-    <!-- Middle: Positions -->
     <div style="display:flex;flex-direction:column;gap:16px;">
-
-      <!-- Open positions -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">// OPEN POSITIONS <span class="panel-badge yellow" id="pos-count">0</span></div>
-        </div>
-        <div style="display:grid;grid-template-columns:60px 1fr 80px 80px 70px;gap:8px;padding:8px 16px;font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">
-          <span>PAIR</span><span>ENTRY</span><span>CURRENT</span><span>P&L</span><span>SIZE</span>
-        </div>
-        <div id="positions-list">
-          <div class="empty-state"><div class="icon">◈</div>No open positions</div>
-        </div>
+        <div class="panel-header"><div class="panel-title">// OPEN POSITIONS <span class="panel-badge yellow" id="pos-count">0</span></div></div>
+        <div id="positions-list"><div class="empty-state"><div class="icon">◈</div>No open positions</div></div>
       </div>
-
-      <!-- Bot log -->
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">// SYSTEM LOG <div class="spinner" id="log-spinner"></div></div>
-          <button class="btn btn-secondary" style="padding:4px 10px;font-size:9px" onclick="clearLog()">CLEAR</button>
+          <div class="panel-title">// SYSTEM LOG <div class="spinner"></div></div>
+          <button class="btn btn-secondary" style="padding:4px 10px;font-size:9px" onclick="document.getElementById('bot-log').innerHTML=''">CLEAR</button>
         </div>
-        <div class="panel-body" style="padding:0">
-          <div class="log-terminal" id="bot-log"></div>
-        </div>
+        <div class="panel-body" style="padding:0"><div class="log-terminal" id="bot-log"></div></div>
       </div>
-
-      <!-- Controls -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">// BOT CONTROLS</div>
-        </div>
+        <div class="panel-header"><div class="panel-title">// BOT CONTROLS</div></div>
         <div class="panel-body">
           <div class="control-row">
             <button class="btn btn-danger" onclick="stopBot()" style="flex:1">■ STOP BOT</button>
@@ -947,47 +294,32 @@
       </div>
     </div>
 
-    <!-- Right: Grid levels sidebar -->
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">// GRID LEVELS</div>
-        </div>
-        <div class="sidebar-section">
-          <div class="sidebar-label">BTC/USDC Grid</div>
-          <div class="grid-levels" id="grid-btc"></div>
-        </div>
-        <div class="sidebar-section">
-          <div class="sidebar-label">ETH/USDC Grid</div>
-          <div class="grid-levels" id="grid-eth"></div>
-        </div>
+        <div class="panel-header"><div class="panel-title">// GRID LEVELS</div></div>
+        <div class="sidebar-section"><div class="sidebar-label">BTC/USDC Grid</div><div class="grid-levels" id="grid-btc"></div></div>
+        <div class="sidebar-section"><div class="sidebar-label">ETH/USDC Grid</div><div class="grid-levels" id="grid-eth"></div></div>
         <div class="sidebar-section">
           <div class="sidebar-label">Strategy Stats</div>
           <div style="display:flex;flex-direction:column;gap:8px;font-size:11px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Engine</span><span style="color:var(--green);font-family:'Space Mono',monospace;font-size:10px">☁ CLOUDFLARE</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Strategy</span><span style="color:var(--blue);font-family:'Space Mono',monospace;font-size:10px">GRID</span></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Grid Spread</span><span style="font-family:'Space Mono',monospace;font-size:10px" id="display-spread">1.0%</span></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Stop Loss</span><span style="color:var(--red);font-family:'Space Mono',monospace;font-size:10px" id="display-sl">5%</span></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Take Profit</span><span style="color:var(--green);font-family:'Space Mono',monospace;font-size:10px" id="display-tp">3%</span></div>
             <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Mode</span><span style="color:var(--yellow);font-family:'Space Mono',monospace;font-size:10px" id="display-mode">PAPER</span></div>
           </div>
         </div>
       </div>
-
-      <!-- Market snapshot -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">// MARKET SNAPSHOT</div>
-        </div>
+        <div class="panel-header"><div class="panel-title">// MARKET SNAPSHOT</div></div>
         <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
-          <div id="market-btc" style="font-size:11px">
+          <div style="font-size:11px">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">BTC/USDC</span><span style="font-family:'Space Mono',monospace" id="ms-btc-price">--</span></div>
             <div style="height:3px;background:var(--border);border-radius:2px"><div id="ms-btc-bar" style="height:100%;background:var(--green);border-radius:2px;width:50%;transition:width 0.5s"></div></div>
           </div>
-          <div id="market-eth" style="font-size:11px">
+          <div style="font-size:11px">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">ETH/USDC</span><span style="font-family:'Space Mono',monospace" id="ms-eth-price">--</span></div>
             <div style="height:3px;background:var(--border);border-radius:2px"><div id="ms-eth-bar" style="height:100%;background:var(--blue);border-radius:2px;width:50%;transition:width 0.5s"></div></div>
           </div>
-          <div id="market-sol" style="font-size:11px">
+          <div style="font-size:11px">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">SOL/USDC</span><span style="font-family:'Space Mono',monospace" id="ms-sol-price">--</span></div>
             <div style="height:3px;background:var(--border);border-radius:2px"><div id="ms-sol-bar" style="height:100%;background:var(--yellow);border-radius:2px;width:50%;transition:width 0.5s"></div></div>
           </div>
@@ -999,600 +331,94 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-// ============================================================
-// LATTICE TRADING BOT — CORE ENGINE
-// ============================================================
+const WORKER_URL = 'https://lattice-bot.latticecollective-io.workers.dev';
+let mode = 'paper';
+let activePair = 'BTC-USDC';
+let chart = null;
+let priceHistory = {'BTC-USDC':[],'ETH-USDC':[],'SOL-USDC':[]};
+let pollInterval = null;
+let trades = [];
 
-const BOT = {
-  running: false,
-  paused: false,
-  mode: 'paper',
-  apiKey: '',
-  apiSecret: '',
-  capital: 200,
-  gridLevels: 5,
-  gridSpread: 1.0,
-  stopLoss: 5,
-  takeProfit: 3,
-  pairs: ['BTC-USDC', 'ETH-USDC'],
-  startTime: null,
-  intervalIds: [],
-  trades: [],
-  positions: {},
-  pnl: 0,
-  wins: 0,
-  losses: 0,
-  prices: { 'BTC-USDC': 0, 'ETH-USDC': 0, 'SOL-USDC': 0 },
-  priceHistory: { 'BTC-USDC': [], 'ETH-USDC': [], 'SOL-USDC': [] },
-  gridOrders: { 'BTC-USDC': [], 'ETH-USDC': [] },
-  activePair: 'BTC-USDC',
-  chart: null,
-};
-
-// Base prices for paper trading simulation
-const BASE_PRICES = { 'BTC-USDC': 71404, 'ETH-USDC': 2006, 'SOL-USDC': 148 };
-
-// ============================================================
-// UI HELPERS
-// ============================================================
-
-function log(msg, type = 'info') {
-  const el = document.getElementById('bot-log');
-  const now = new Date();
-  const time = now.toTimeString().slice(0,8);
-  const line = document.createElement('div');
-  line.className = 'log-line';
-  line.innerHTML = `<span class="time">[${time}]</span> <span class="${type}">${msg}</span>`;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-}
-
-function clearLog() { document.getElementById('bot-log').innerHTML = ''; }
-
-function setMode(mode) {
-  BOT.mode = mode;
-  document.getElementById('mode-paper').classList.toggle('active', mode === 'paper');
-  document.getElementById('mode-live').classList.toggle('active', mode === 'live');
-  document.getElementById('live-warning').style.display = mode === 'live' ? 'block' : 'none';
-  document.getElementById('capital-display').textContent = document.getElementById('capital').value;
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode-paper').classList.toggle('active', m==='paper');
+  document.getElementById('mode-live').classList.toggle('active', m==='live');
 }
 
 function updateStatus(status, text) {
-  const dot = document.getElementById('status-dot');
-  const txt = document.getElementById('status-text');
-  dot.className = 'status-dot ' + status;
-  txt.textContent = text;
+  document.getElementById('status-dot').className = 'status-dot ' + status;
+  document.getElementById('status-text').textContent = text;
 }
-
-function fmt(n, dec=2) { return parseFloat(n).toFixed(dec); }
-function fmtUSD(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
-
-// ============================================================
-// COINBASE API (LIVE MODE)
-// ============================================================
-
-async function coinbaseRequest(path, method = 'GET', body = null) {
-  try {
-    // Build JWT for Coinbase CDP auth
-    const keyName = BOT.apiKey;
-    const keySecret = BOT.apiSecret;
-    const url = 'https://api.coinbase.com' + path;
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const message = timestamp + method + path + (body ? JSON.stringify(body) : '');
-
-    // Import private key and sign
-    const pemKey = keySecret.replace(/-----BEGIN EC PRIVATE KEY-----|-----END EC PRIVATE KEY-----|\n/g, '');
-    const keyData = Uint8Array.from(atob(pemKey), c => c.charCodeAt(0));
-    const cryptoKey = await crypto.subtle.importKey(
-      'pkcs8', keyData.buffer,
-      { name: 'ECDSA', namedCurve: 'P-256' },
-      false, ['sign']
-    );
-    const encoder = new TextEncoder();
-    const sig = await crypto.subtle.sign(
-      { name: 'ECDSA', hash: 'SHA-256' },
-      cryptoKey,
-      encoder.encode(message)
-    );
-    const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'CB-ACCESS-KEY': keyName,
-      'CB-ACCESS-SIGN': sigB64,
-      'CB-ACCESS-TIMESTAMP': timestamp,
-    };
-
-    const res = await fetch(url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`API ${res.status}: ${err}`);
-    }
-    return await res.json();
-  } catch (e) {
-    log('API Error: ' + e.message, 'error');
-    throw e;
-  }
-}
-
-async function getLivePrice(pair) {
-  try {
-    const data = await coinbaseRequest(`/api/v3/brokerage/best_bid_ask?product_ids=${pair}`);
-    if (data.pricebooks && data.pricebooks[0]) {
-      const book = data.pricebooks[0];
-      return (parseFloat(book.bids[0].price) + parseFloat(book.asks[0].price)) / 2;
-    }
-  } catch (e) {
-    log(`Price fetch failed for ${pair}, using last known`, 'warn');
-  }
-  return BOT.prices[pair] || BASE_PRICES[pair];
-}
-
-async function placeLiveOrder(pair, side, size, price) {
-  const orderId = 'lattice-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
-  const body = {
-    client_order_id: orderId,
-    product_id: pair,
-    side: side.toUpperCase(),
-    order_configuration: {
-      limit_limit_gtc: {
-        base_size: size.toString(),
-        limit_price: price.toString(),
-        post_only: false
-      }
-    }
-  };
-  return await coinbaseRequest('/api/v3/brokerage/orders', 'POST', body);
-}
-
-async function getLiveBalance() {
-  try {
-    const data = await coinbaseRequest('/api/v3/brokerage/accounts');
-    const accounts = data.accounts || [];
-    const usdc = accounts.find(a => a.currency === 'USDC');
-    return usdc ? parseFloat(usdc.available_balance.value) : 0;
-  } catch (e) {
-    return 0;
-  }
-}
-
-// ============================================================
-// PAPER TRADING ENGINE
-// ============================================================
-
-function simulatePrice(pair) {
-  const last = BOT.prices[pair] || BASE_PRICES[pair];
-  const volatility = pair === 'BTC-USDC' ? 0.003 : pair === 'ETH-USDC' ? 0.004 : 0.005;
-  const change = (Math.random() - 0.498) * volatility;
-  const trend = Math.sin(Date.now() / 60000) * 0.001;
-  return last * (1 + change + trend);
-}
-
-function paperPlaceOrder(pair, side, size, price) {
-  return {
-    success: true,
-    order_id: 'paper-' + Date.now(),
-    side, size, price, pair,
-    status: 'OPEN'
-  };
-}
-
-// ============================================================
-// GRID STRATEGY ENGINE
-// ============================================================
-
-function buildGrid(pair, currentPrice) {
-  const levels = BOT.gridLevels;
-  const spread = BOT.gridSpread / 100;
-  const capitalPerPair = BOT.capital / BOT.pairs.length;
-  const capitalPerLevel = capitalPerPair / (levels * 2);
-  const grid = [];
-
-  for (let i = 1; i <= levels; i++) {
-    const buyPrice = currentPrice * (1 - spread * i);
-    const sellPrice = currentPrice * (1 + spread * i);
-    const size = capitalPerLevel / currentPrice;
-
-    grid.push({ type: 'buy', price: buyPrice, size: fmt(size, 6), filled: false, active: true });
-    grid.push({ type: 'sell', price: sellPrice, size: fmt(size, 6), filled: false, active: true });
-  }
-
-  grid.sort((a, b) => b.price - a.price);
-  BOT.gridOrders[pair] = grid;
-  renderGrid(pair);
-  log(`Grid built for ${pair}: ${levels*2} levels around $${fmt(currentPrice)}`, 'success');
-}
-
-function renderGrid(pair) {
-  const key = pair === 'BTC-USDC' ? 'btc' : 'eth';
-  const el = document.getElementById('grid-' + key);
-  if (!el) return;
-  const grid = BOT.gridOrders[pair] || [];
-  el.innerHTML = grid.slice(0, 12).map(o => `
-    <div class="grid-level ${o.type}-level ${o.filled ? 'filled' : o.active ? 'active' : 'inactive'}">
-      <span>${o.type === 'buy' ? '▼' : '▲'} $${fmt(o.price, o.price > 1000 ? 0 : 2)}</span>
-      <span>${o.size}</span>
-    </div>
-  `).join('');
-}
-
-async function checkGridFills(pair) {
-  if (!BOT.running || BOT.paused) return;
-  const price = BOT.prices[pair];
-  if (!price) return;
-
-  const grid = BOT.gridOrders[pair] || [];
-  let filled = false;
-
-  for (const level of grid) {
-    if (level.filled || !level.active) continue;
-
-    const shouldFill = level.type === 'buy'
-      ? price <= level.price
-      : price >= level.price;
-
-    if (shouldFill) {
-      level.filled = true;
-      level.active = false;
-      const pnl = level.type === 'sell'
-        ? (level.price - (BOT.positions[pair]?.avgEntry || level.price * 0.99)) * parseFloat(level.size)
-        : 0;
-
-      const trade = {
-        time: new Date().toTimeString().slice(0,8),
-        pair: pair.replace('-', '/'),
-        side: level.type,
-        size: level.size,
-        price: fmt(level.price, level.price > 1000 ? 0 : 2),
-        pnl: pnl,
-        status: 'FILLED'
-      };
-
-      BOT.trades.unshift(trade);
-      BOT.pnl += pnl;
-      if (pnl > 0) BOT.wins++; else if (pnl < 0) BOT.losses++;
-
-      addTradeRow(trade);
-      log(`${level.type.toUpperCase()} FILLED: ${pair} @ $${trade.price} | PnL: ${fmtUSD(pnl)}`, pnl >= 0 ? 'success' : 'warn');
-
-      // Replace filled level
-      const spread = BOT.gridSpread / 100;
-      const newPrice = level.type === 'buy'
-        ? price * (1 + spread)
-        : price * (1 - spread);
-      const newLevel = { type: level.type === 'buy' ? 'sell' : 'buy', price: newPrice, size: level.size, filled: false, active: true };
-      grid.push(newLevel);
-      grid.sort((a, b) => b.price - a.price);
-
-      filled = true;
-      break;
-    }
-  }
-
-  if (filled) {
-    renderGrid(pair);
-    updateStats();
-  }
-}
-
-// ============================================================
-// PRICE FETCHING LOOP
-// ============================================================
-
-async function fetchPrices() {
-  for (const pair of ['BTC-USDC', 'ETH-USDC', 'SOL-USDC']) {
-    let price;
-    if (BOT.mode === 'live') {
-      price = await getLivePrice(pair);
-    } else {
-      price = simulatePrice(pair);
-    }
-    BOT.prices[pair] = price;
-    BOT.priceHistory[pair].push(price);
-    if (BOT.priceHistory[pair].length > 60) BOT.priceHistory[pair].shift();
-  }
-  updateTicker();
-  updateMarketSnapshot();
-  updateChart();
-  checkGridFills('BTC-USDC');
-  checkGridFills('ETH-USDC');
-}
-
-// ============================================================
-// UI UPDATES
-// ============================================================
-
-function updateTicker() {
-  const btc = BOT.prices['BTC-USDC'];
-  const eth = BOT.prices['ETH-USDC'];
-  const sol = BOT.prices['SOL-USDC'];
-
-  const hist = BOT.priceHistory;
-  const pctChange = (pair) => {
-    const h = hist[pair];
-    if (h.length < 2) return 0;
-    return ((h[h.length-1] - h[0]) / h[0]) * 100;
-  };
-
-  const formatChange = (pct) => {
-    const sign = pct >= 0 ? '+' : '';
-    return `${sign}${fmt(pct, 2)}%`;
-  };
-
-  if (btc) {
-    document.getElementById('t-btc').textContent = '$' + btc.toLocaleString('en', {minimumFractionDigits:0,maximumFractionDigits:0});
-    const c = pctChange('BTC-USDC');
-    const el = document.getElementById('tc-btc');
-    el.textContent = formatChange(c);
-    el.className = 'ticker-change ' + (c >= 0 ? 'up' : 'down');
-  }
-  if (eth) {
-    document.getElementById('t-eth').textContent = '$' + fmt(eth, 2);
-    const c = pctChange('ETH-USDC');
-    const el = document.getElementById('tc-eth');
-    el.textContent = formatChange(c);
-    el.className = 'ticker-change ' + (c >= 0 ? 'up' : 'down');
-  }
-  if (sol) {
-    document.getElementById('t-sol').textContent = '$' + fmt(sol, 2);
-    const c = pctChange('SOL-USDC');
-    const el = document.getElementById('tc-sol');
-    el.textContent = formatChange(c);
-    el.className = 'ticker-change ' + (c >= 0 ? 'up' : 'down');
-  }
-
-  const price = BOT.prices[BOT.activePair];
-  if (price) {
-    document.getElementById('current-price').textContent = '$' + (price > 100 ? price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : fmt(price,4));
-  }
-
-  document.getElementById('ticker-time').textContent = new Date().toTimeString().slice(0,8);
-}
-
-function updateMarketSnapshot() {
-  const pairs = { 'BTC-USDC': ['ms-btc-price','ms-btc-bar'], 'ETH-USDC': ['ms-eth-price','ms-eth-bar'], 'SOL-USDC': ['ms-sol-price','ms-sol-bar'] };
-  for (const [pair, [priceId, barId]] of Object.entries(pairs)) {
-    const price = BOT.prices[pair];
-    const hist = BOT.priceHistory[pair];
-    if (!price || hist.length < 2) continue;
-    const min = Math.min(...hist), max = Math.max(...hist);
-    const pct = max === min ? 50 : ((price - min) / (max - min)) * 100;
-    document.getElementById(priceId).textContent = '$' + (price > 100 ? price.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : fmt(price,4));
-    document.getElementById(barId).style.width = pct + '%';
-  }
-}
-
-function updateStats() {
-  const pnlEl = document.getElementById('stat-pnl');
-  pnlEl.textContent = (BOT.pnl >= 0 ? '+$' : '-$') + Math.abs(BOT.pnl).toFixed(2);
-  pnlEl.className = 'stat-value ' + (BOT.pnl >= 0 ? 'green' : 'red');
-
-  const pct = (BOT.pnl / BOT.capital) * 100;
-  document.getElementById('stat-pnl-pct').textContent = (pct >= 0 ? '+' : '') + fmt(pct) + '%';
-
-  document.getElementById('stat-trades').textContent = BOT.trades.length;
-  document.getElementById('stat-wins').textContent = BOT.wins + 'W / ' + BOT.losses + 'L';
-
-  const wr = BOT.trades.length > 0 ? Math.round((BOT.wins / BOT.trades.length) * 100) : 0;
-  document.getElementById('stat-winrate').textContent = wr + '%';
-
-  const totalOrders = (BOT.gridOrders['BTC-USDC'] || []).filter(o => o.active && !o.filled).length + (BOT.gridOrders['ETH-USDC'] || []).filter(o => o.active && !o.filled).length;
-  document.getElementById('stat-orders').textContent = totalOrders;
-
-  document.getElementById('trade-count-badge').textContent = BOT.trades.length;
-}
-
-function updateUptime() {
-  if (!BOT.startTime) return;
-  const diff = Math.floor((Date.now() - BOT.startTime) / 1000);
-  const h = Math.floor(diff / 3600).toString().padStart(2,'0');
-  const m = Math.floor((diff % 3600) / 60).toString().padStart(2,'0');
-  const s = (diff % 60).toString().padStart(2,'0');
-  document.getElementById('stat-uptime').textContent = `${h}:${m}:${s}`;
-}
-
-function addTradeRow(trade) {
-  const log = document.getElementById('trade-log');
-  const empty = log.querySelector('.empty-state');
-  if (empty) log.innerHTML = '';
-
-  const row = document.createElement('div');
-  row.className = `trade-row ${trade.side}`;
-  const pnlClass = trade.pnl >= 0 ? 'pos' : 'neg';
-  const pnlText = trade.pnl === 0 ? '--' : (trade.pnl >= 0 ? '+$' : '-$') + Math.abs(trade.pnl).toFixed(2);
-  row.innerHTML = `
-    <span class="trade-time">${trade.time}</span>
-    <span class="trade-pair">${trade.pair.split('/')[0]}</span>
-    <span><span class="trade-side" style="font-family:'Space Mono',monospace;font-size:10px">${trade.side.toUpperCase()}</span> <span style="color:var(--muted)">${trade.size}</span></span>
-    <span class="trade-pnl ${pnlClass}" style="font-family:'Space Mono',monospace;font-size:10px">${pnlText}</span>
-    <span class="trade-status filled">FILLED</span>
-  `;
-  log.insertBefore(row, log.firstChild);
-  if (log.children.length > 50) log.removeChild(log.lastChild);
-}
-
-// ============================================================
-// CHART
-// ============================================================
-
-function initChart() {
-  const ctx = document.getElementById('price-chart').getContext('2d');
-  BOT.chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: Array(60).fill(''),
-      datasets: [{
-        data: Array(60).fill(null),
-        borderColor: '#00e676',
-        backgroundColor: 'rgba(0, 230, 118, 0.05)',
-        borderWidth: 1.5,
-        pointRadius: 0,
-        tension: 0.4,
-        fill: true,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 0 },
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      scales: {
-        x: { display: false },
-        y: {
-          display: true,
-          grid: { color: 'rgba(26, 40, 48, 0.8)', lineWidth: 0.5 },
-          ticks: { color: '#4a6572', font: { size: 9, family: 'Space Mono' }, maxTicksLimit: 4 },
-          border: { display: false }
-        }
-      }
-    }
-  });
-}
-
-function updateChart() {
-  if (!BOT.chart) return;
-  const hist = BOT.priceHistory[BOT.activePair];
-  if (hist.length < 2) return;
-  BOT.chart.data.datasets[0].data = [...hist];
-  BOT.chart.data.labels = hist.map(() => '');
-  BOT.chart.update('none');
-}
-
-function switchPair(pair, btn) {
-  BOT.activePair = pair;
-  document.querySelectorAll('.pair-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const price = BOT.prices[pair];
-  if (price) document.getElementById('current-price').textContent = '$' + fmt(price, price > 100 ? 2 : 4);
-  updateChart();
-}
-
-// ============================================================
-// BOT START / STOP
-// ============================================================
 
 async function startBot() {
   const apiKey = document.getElementById('api-key').value.trim();
   const apiSecret = document.getElementById('api-secret').value.trim();
+  const errBox = document.getElementById('error-box');
+  errBox.style.display = 'none';
 
-  if (!apiKey || !apiSecret) {
-    alert('Please enter your CDP API Key and Secret before starting.');
-    return;
-  }
+  if (!apiKey || !apiSecret) { errBox.textContent = '⚠ Please enter your CDP API Key and Secret.'; errBox.style.display = 'block'; return; }
+  if (!apiKey.startsWith('organizations/')) { errBox.textContent = '⚠ API Key should start with "organizations/..."'; errBox.style.display = 'block'; return; }
 
-  if (!apiKey.startsWith('organizations/')) {
-    alert('API Key should start with "organizations/..." — please check your credentials.');
-    return;
-  }
-
-  BOT.apiKey = apiKey;
-  BOT.apiSecret = apiSecret;
-  BOT.capital = parseFloat(document.getElementById('capital').value);
-  BOT.gridLevels = parseInt(document.getElementById('grid-levels').value);
-  BOT.gridSpread = parseFloat(document.getElementById('grid-spread').value);
-  BOT.stopLoss = parseFloat(document.getElementById('stop-loss').value);
-  BOT.takeProfit = parseFloat(document.getElementById('take-profit').value);
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true; btn.textContent = '⟳ INITIALIZING...';
 
   const p1 = document.getElementById('pair1').value;
   const p2 = document.getElementById('pair2').value;
-  BOT.pairs = [p1, ...(p2 !== 'none' && p2 !== p1 ? [p2] : [])];
+  const pairs = [p1, ...(p2 !== 'none' && p2 !== p1 ? [p2] : [])];
 
-  // Show dashboard
-  document.getElementById('setup-panel').style.display = 'none';
-  document.getElementById('dashboard-panel').style.display = 'block';
-  document.getElementById('header-controls').style.display = 'flex';
+  try {
+    const res = await fetch(WORKER_URL + '/start', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        apiKey, apiSecret, mode,
+        capital: parseFloat(document.getElementById('capital').value),
+        gridLevels: parseInt(document.getElementById('grid-levels').value),
+        gridSpread: parseFloat(document.getElementById('grid-spread').value),
+        stopLoss: parseFloat(document.getElementById('stop-loss').value),
+        takeProfit: parseFloat(document.getElementById('take-profit').value),
+        pairs
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
 
-  // Paper banner
-  const banner = document.getElementById('paper-banner');
-  banner.style.display = BOT.mode === 'paper' ? 'flex' : 'none';
-  document.getElementById('display-mode').textContent = BOT.mode.toUpperCase();
-  document.getElementById('display-spread').textContent = BOT.gridSpread + '%';
-  document.getElementById('display-sl').textContent = BOT.stopLoss + '%';
-  document.getElementById('display-tp').textContent = BOT.takeProfit + '%';
-  document.getElementById('stat-capital').textContent = '$' + BOT.capital;
-
-  initChart();
-
-  // Initialize prices
-  for (const pair of ['BTC-USDC', 'ETH-USDC', 'SOL-USDC']) {
-    BOT.prices[pair] = BASE_PRICES[pair];
-    BOT.priceHistory[pair] = [BASE_PRICES[pair]];
+    document.getElementById('setup-panel').style.display = 'none';
+    document.getElementById('dashboard-panel').style.display = 'block';
+    document.getElementById('header-controls').style.display = 'flex';
+    document.getElementById('paper-banner').style.display = mode === 'paper' ? 'flex' : 'none';
+    document.getElementById('display-mode').textContent = mode.toUpperCase();
+    document.getElementById('stat-capital').textContent = '$' + document.getElementById('capital').value;
+    updateStatus(mode === 'live' ? 'live' : 'paper', mode.toUpperCase());
+    initChart();
+    startPolling();
+  } catch(e) {
+    errBox.textContent = '⚠ Failed to start: ' + e.message;
+    errBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '▶ INITIALIZE BOT';
   }
-
-  BOT.running = true;
-  BOT.startTime = Date.now();
-
-  updateStatus(BOT.mode === 'live' ? 'live' : 'paper', BOT.mode === 'live' ? 'LIVE' : 'PAPER');
-
-  log('Lattice Trading Bot initialized', 'success');
-  log(`Mode: ${BOT.mode.toUpperCase()} | Capital: $${BOT.capital} | Pairs: ${BOT.pairs.join(', ')}`, 'info');
-  log(`Grid: ${BOT.gridLevels} levels @ ${BOT.gridSpread}% spread | SL: ${BOT.stopLoss}% | TP: ${BOT.takeProfit}%`, 'info');
-
-  if (BOT.mode === 'live') {
-    log('Connecting to Coinbase Advanced Trade API...', 'info');
-    try {
-      const balance = await getLiveBalance();
-      log(`Account USDC balance: $${fmt(balance)}`, 'success');
-      if (balance < BOT.capital) {
-        log(`WARNING: Balance ($${fmt(balance)}) lower than capital setting ($${BOT.capital})`, 'warn');
-      }
-    } catch (e) {
-      log('Could not verify balance — check API credentials', 'warn');
-    }
-  }
-
-  // Fetch initial prices and build grids
-  await fetchPrices();
-
-  for (const pair of BOT.pairs) {
-    buildGrid(pair, BOT.prices[pair]);
-  }
-
-  log('Grid orders placed. Bot is scanning markets 24/7...', 'success');
-
-  // Main loop: price updates every 5 seconds
-  BOT.intervalIds.push(setInterval(fetchPrices, 5000));
-
-  // Uptime counter
-  BOT.intervalIds.push(setInterval(updateUptime, 1000));
-
-  // Stats refresh
-  BOT.intervalIds.push(setInterval(updateStats, 2000));
-
-  // Log heartbeat every 60s
-  BOT.intervalIds.push(setInterval(() => {
-    if (BOT.running && !BOT.paused) {
-      log(`Heartbeat — BTC: $${fmt(BOT.prices['BTC-USDC'],0)} | ETH: $${fmt(BOT.prices['ETH-USDC'],2)} | PnL: ${fmtUSD(BOT.pnl)}`, 'info');
-    }
-  }, 60000));
 }
 
-function stopBot() {
+async function stopBot() {
   if (!confirm('Stop the bot? All grid orders will be cancelled.')) return;
-  BOT.running = false;
-  BOT.intervalIds.forEach(id => clearInterval(id));
-  BOT.intervalIds = [];
+  await fetch(WORKER_URL + '/stop', {method:'POST'});
+  stopPolling();
   updateStatus('stopped', 'STOPPED');
-  log('Bot stopped. All intervals cleared.', 'warn');
   document.getElementById('header-controls').style.display = 'none';
 }
 
-function pauseBot() {
-  BOT.paused = !BOT.paused;
-  const btn = document.getElementById('pause-btn');
-  btn.textContent = BOT.paused ? '▶ RESUME' : '⏸ PAUSE';
-  updateStatus(BOT.paused ? 'stopped' : (BOT.mode === 'live' ? 'live' : 'paper'), BOT.paused ? 'PAUSED' : BOT.mode.toUpperCase());
-  log(BOT.paused ? 'Bot paused. No new orders will be placed.' : 'Bot resumed.', 'warn');
+async function pauseBot() {
+  const res = await fetch(WORKER_URL + '/pause', {method:'POST'});
+  const data = await res.json();
+  document.getElementById('pause-btn').textContent = data.paused ? '▶ RESUME' : '⏸ PAUSE';
+  updateStatus(data.paused ? 'stopped' : (mode==='live'?'live':'paper'), data.paused ? 'PAUSED' : mode.toUpperCase());
 }
 
 function showSetup() {
   if (!confirm('Reconfigure? Bot will be stopped.')) return;
-  stopBot();
+  fetch(WORKER_URL + '/stop', {method:'POST'});
+  stopPolling();
   document.getElementById('setup-panel').style.display = 'block';
   document.getElementById('dashboard-panel').style.display = 'none';
   document.getElementById('header-controls').style.display = 'none';
@@ -1601,30 +427,199 @@ function showSetup() {
 
 function switchToLive() {
   if (!confirm('Switch to LIVE trading? Real money will be used.')) return;
-  BOT.mode = 'live';
+  mode = 'live';
   document.getElementById('paper-banner').style.display = 'none';
   document.getElementById('display-mode').textContent = 'LIVE';
   updateStatus('live', 'LIVE');
-  log('Switched to LIVE trading mode. Real orders will be placed.', 'warn');
+}
+
+// ── POLLING STATE FROM WORKER ──
+function startPolling() {
+  pollState();
+  pollInterval = setInterval(pollState, 5000);
+}
+
+function stopPolling() {
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+}
+
+async function pollState() {
+  try {
+    const res = await fetch(WORKER_URL + '/state');
+    const s = await res.json();
+    updateDashboard(s);
+  } catch(e) {
+    addLog('Failed to fetch state from worker', 'error');
+  }
+}
+
+function updateDashboard(s) {
+  // P&L
+  const pnl = s.pnl || 0;
+  const pnlEl = document.getElementById('stat-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+  pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'green' : 'red');
+  const pct = (pnl / (s.capital || 200)) * 100;
+  document.getElementById('stat-pnl-pct').textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+
+  // Stats
+  document.getElementById('stat-trades').textContent = (s.trades || []).length;
+  document.getElementById('stat-wins').textContent = (s.wins||0) + 'W / ' + (s.losses||0) + 'L';
+  const wr = (s.trades||[]).length > 0 ? Math.round((s.wins / s.trades.length) * 100) : 0;
+  document.getElementById('stat-winrate').textContent = wr + '%';
+  document.getElementById('stat-uptime').textContent = s.uptime || '00:00:00';
+
+  // Open orders
+  const btcOrders = (s.gridOrders?.['BTC-USDC'] || []).filter(o => o.active && !o.filled).length;
+  const ethOrders = (s.gridOrders?.['ETH-USDC'] || []).filter(o => o.active && !o.filled).length;
+  document.getElementById('stat-orders').textContent = btcOrders + ethOrders;
+
+  // Prices
+  const prices = s.prices || {};
+  updateTicker(prices, s.priceHistory || {});
+  updateMarketSnapshot(prices, s.priceHistory || {});
+
+  // Trades
+  if (s.trades && s.trades.length !== trades.length) {
+    trades = s.trades;
+    renderTrades(trades);
+  }
+
+  // Grid
+  renderGrid('btc', s.gridOrders?.['BTC-USDC'] || []);
+  renderGrid('eth', s.gridOrders?.['ETH-USDC'] || []);
+
+  // Logs
+  if (s.logs && s.logs.length) {
+    const logEl = document.getElementById('bot-log');
+    logEl.innerHTML = s.logs.map(l => `<div class="log-line"><span class="time">[${l.time}]</span> <span class="${l.type}">${l.msg}</span></div>`).join('');
+  }
+
+  // Update price history for chart
+  for (const pair of ['BTC-USDC','ETH-USDC','SOL-USDC']) {
+    if (s.priceHistory?.[pair]) priceHistory[pair] = s.priceHistory[pair];
+  }
+  updateChart();
+
+  document.getElementById('ticker-time').textContent = new Date().toTimeString().slice(0,8);
+}
+
+function updateTicker(prices, history) {
+  const pairs = {'BTC-USDC':['t-btc','tc-btc'],'ETH-USDC':['t-eth','tc-eth'],'SOL-USDC':['t-sol','tc-sol']};
+  for (const [pair,[priceId,changeId]] of Object.entries(pairs)) {
+    const p = prices[pair]; if (!p) continue;
+    document.getElementById(priceId).textContent = '$' + (p > 100 ? Math.round(p).toLocaleString() : p.toFixed(4));
+    const h = history[pair] || [];
+    if (h.length > 1) {
+      const pct = ((h[h.length-1] - h[0]) / h[0]) * 100;
+      const el = document.getElementById(changeId);
+      el.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+      el.className = 'ticker-change ' + (pct >= 0 ? 'up' : 'down');
+    }
+  }
+  const p = prices[activePair];
+  if (p) document.getElementById('current-price').textContent = '$' + (p > 100 ? p.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : p.toFixed(4));
+}
+
+function updateMarketSnapshot(prices, history) {
+  const map = {'BTC-USDC':['ms-btc-price','ms-btc-bar'],'ETH-USDC':['ms-eth-price','ms-eth-bar'],'SOL-USDC':['ms-sol-price','ms-sol-bar']};
+  for (const [pair,[pid,bid]] of Object.entries(map)) {
+    const p = prices[pair]; const h = history[pair] || []; if (!p || h.length < 2) continue;
+    const min = Math.min(...h), max = Math.max(...h);
+    const pct = max === min ? 50 : ((p - min) / (max - min)) * 100;
+    document.getElementById(pid).textContent = '$' + (p > 100 ? p.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : p.toFixed(4));
+    document.getElementById(bid).style.width = pct + '%';
+  }
+}
+
+function renderTrades(tradeList) {
+  const log = document.getElementById('trade-log');
+  document.getElementById('trade-count-badge').textContent = tradeList.length;
+  if (!tradeList.length) { log.innerHTML = '<div class="empty-state"><div class="icon">◈</div>No trades yet.</div>'; return; }
+  log.innerHTML = tradeList.slice(0,50).map(t => {
+    const pnlClass = t.pnl >= 0 ? 'pos' : 'neg';
+    const pnlText = t.pnl === 0 ? '--' : (t.pnl >= 0 ? '+$' : '-$') + Math.abs(t.pnl).toFixed(2);
+    return `<div class="trade-row ${t.side}">
+      <span class="trade-time">${t.time}</span>
+      <span class="trade-pair">${(t.pair||'').split('/')[0]}</span>
+      <span><span class="trade-side" style="font-family:'Space Mono',monospace;font-size:10px">${(t.side||'').toUpperCase()}</span> <span style="color:var(--muted)">${t.size}</span></span>
+      <span class="trade-pnl ${pnlClass}" style="font-family:'Space Mono',monospace;font-size:10px">${pnlText}</span>
+      <span class="trade-status filled">FILLED</span>
+    </div>`;
+  }).join('');
+}
+
+function renderGrid(key, grid) {
+  const el = document.getElementById('grid-' + key); if (!el) return;
+  if (!grid.length) { el.innerHTML = '<div style="color:var(--muted);font-size:9px;font-family:Space Mono,monospace">No grid data</div>'; return; }
+  el.innerHTML = grid.slice(0,12).map(o => `
+    <div class="grid-level ${o.type}-level ${o.filled ? 'filled' : ''}">
+      <span>${o.type==='buy'?'▼':'▲'} $${parseFloat(o.price).toFixed(o.price>100?0:2)}</span>
+      <span>${o.size}</span>
+    </div>`).join('');
+}
+
+function addLog(msg, type='info') {
+  const el = document.getElementById('bot-log');
+  const time = new Date().toTimeString().slice(0,8);
+  el.innerHTML += `<div class="log-line"><span class="time">[${time}]</span> <span class="${type}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function initChart() {
+  const ctx = document.getElementById('price-chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{labels:Array(60).fill(''),datasets:[{data:Array(60).fill(null),borderColor:'#00e676',backgroundColor:'rgba(0,230,118,0.05)',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:true,grid:{color:'rgba(26,40,48,0.8)',lineWidth:0.5},ticks:{color:'#4a6572',font:{size:9,family:'Space Mono'},maxTicksLimit:4},border:{display:false}}}}
+  });
+}
+
+function updateChart() {
+  if (!chart) return;
+  const hist = priceHistory[activePair];
+  if (hist.length < 2) return;
+  chart.data.datasets[0].data = [...hist];
+  chart.data.labels = hist.map(()=>'');
+  chart.update('none');
+}
+
+function switchPair(pair, btn) {
+  activePair = pair;
+  document.querySelectorAll('.pair-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateChart();
 }
 
 function exportTrades() {
-  if (BOT.trades.length === 0) { alert('No trades to export yet.'); return; }
-  const csv = ['Time,Pair,Side,Size,Price,PnL,Status', ...BOT.trades.map(t => `${t.time},${t.pair},${t.side},${t.size},${t.price},${t.pnl.toFixed(4)},${t.status}`)].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
+  if (!trades.length) { alert('No trades to export yet.'); return; }
+  const csv = ['Time,Pair,Side,Size,Price,PnL,Status',...trades.map(t=>`${t.time},${t.pair},${t.side},${t.size},${t.price},${t.pnl.toFixed(4)},${t.status}`)].join('\n');
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'lattice-trades-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'lattice-trades-'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
-// Update live warning when capital changes
-document.getElementById && document.addEventListener('DOMContentLoaded', () => {
-  const capInput = document.getElementById('capital');
-  if (capInput) capInput.addEventListener('input', () => {
-    document.getElementById('capital-display').textContent = capInput.value;
-  });
-});
+// On load — check if bot is already running in cloud
+(async function() {
+  try {
+    const res = await fetch(WORKER_URL + '/state');
+    const s = await res.json();
+    if (s.running) {
+      document.getElementById('setup-panel').style.display = 'none';
+      document.getElementById('dashboard-panel').style.display = 'block';
+      document.getElementById('header-controls').style.display = 'flex';
+      document.getElementById('paper-banner').style.display = s.mode === 'paper' ? 'flex' : 'none';
+      document.getElementById('display-mode').textContent = (s.mode||'paper').toUpperCase();
+      document.getElementById('stat-capital').textContent = '$' + (s.capital||200);
+      mode = s.mode || 'paper';
+      updateStatus(s.mode==='live'?'live':'paper', (s.mode||'paper').toUpperCase());
+      initChart();
+      updateDashboard(s);
+      startPolling();
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
-  </html>
+              </html>
