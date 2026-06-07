@@ -8,34 +8,16 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --blue:#40c4ff;
-  --yellow:#ffd740;
-  --red:#ff5252;
-  --purple:#b388ff;
-  --cyan:#18ffff;
-  --g:#00ff88;
-  --gb:rgba(0,255,136,0.08);
-  --gb2:rgba(0,255,136,0.15);
-  --gc:rgba(0,255,136,0.4);
-  --gd:rgba(0,255,136,0.6);
-  --b:#001a0d;
-  --b2:#002212;
-  --b3:#003018;
-  --panel:rgba(0,20,10,0.85);
-  --border:rgba(0,255,136,0.2);
-  --border2:rgba(0,255,136,0.4);
+  --blue:#40c4ff;--yellow:#ffd740;--red:#ff5252;--purple:#b388ff;--cyan:#18ffff;
+  --g:#00ff88;--gb:rgba(0,255,136,0.08);--gb2:rgba(0,255,136,0.15);
+  --gc:rgba(0,255,136,0.4);--gd:rgba(0,255,136,0.6);
+  --b:#001a0d;--b2:#002212;--b3:#003018;
+  --panel:rgba(0,20,10,0.85);--border:rgba(0,255,136,0.2);--border2:rgba(0,255,136,0.4);
 }
 html,body{width:100%;height:100%;overflow:hidden;background:#000;}
 canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 #hud{position:relative;z-index:10;width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-
-/* HEADER */
-#topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 24px;border-bottom:1px solid var(--border);
-  background:rgba(0,8,4,0.9);backdrop-filter:blur(10px);
-  flex-shrink:0;
-}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--border);background:rgba(0,8,4,0.9);backdrop-filter:blur(10px);flex-shrink:0;}
 .logo-block{display:flex;align-items:center;gap:12px;}
 .logo-hex{width:36px;height:36px;position:relative;}
 .logo-hex svg{width:100%;height:100%;}
@@ -51,33 +33,17 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);animation:blink 2s infinite;}
 .status-text{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--g);letter-spacing:0.15em;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
-
-/* MAIN */
 #main{display:flex;flex:1;overflow:hidden;}
-
-/* SIDEBAR */
-#sidebar{
-  width:220px;flex-shrink:0;
-  border-right:1px solid var(--border);
-  background:rgba(0,8,4,0.92);backdrop-filter:blur(10px);
-  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
-}
+#sidebar{width:220px;flex-shrink:0;border-right:1px solid var(--border);background:rgba(0,8,4,0.92);backdrop-filter:blur(10px);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;}
 #sidebar::-webkit-scrollbar{width:2px;}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border);}
 .sidebar-section{padding:12px 16px;border-bottom:1px solid var(--border);}
 .sidebar-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);letter-spacing:0.2em;margin-bottom:10px;}
-.agent-item{
-  display:flex;align-items:center;gap:10px;padding:8px 10px;
-  margin-bottom:4px;border:1px solid transparent;
-  cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
-}
+.agent-item{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:4px;border:1px solid transparent;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
 .agent-item:hover{border-color:var(--border);background:var(--gb);}
 .agent-item.active{border-color:var(--gc);background:var(--gb2);}
 .agent-item.running{border-color:var(--g);background:var(--gb2);}
-.agent-item::before{
-  content:'';position:absolute;left:0;top:0;width:2px;height:100%;
-  background:var(--g);transform:scaleY(0);transition:transform 0.2s;
-}
+.agent-item::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:var(--g);transform:scaleY(0);transition:transform 0.2s;}
 .agent-item.active::before,.agent-item.running::before{transform:scaleY(1);}
 .agent-ico{width:28px;height:28px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--g);}
 .agent-info{flex:1;min-width:0;}
@@ -86,82 +52,33 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 .agent-state.run{color:#ffcc00;}
 .agent-state.done{color:var(--g);}
 .agent-state.err{color:#ff4444;}
-.run-btn{
-  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--g);
-  background:none;border:1px solid var(--border);padding:2px 6px;
-  cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;flex-shrink:0;
-}
+.run-btn{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--g);background:none;border:1px solid var(--border);padding:2px 6px;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;flex-shrink:0;}
 .run-btn:hover{background:var(--gb);border-color:var(--gc);}
 .run-btn:disabled{opacity:0.3;cursor:not-allowed;}
-
-.run-all-btn{
-  margin:12px 16px;padding:10px;
-  border:1px solid var(--gc);background:var(--gb);
-  font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
-  color:var(--g);letter-spacing:0.2em;cursor:pointer;
-  text-align:center;transition:all 0.3s;position:relative;overflow:hidden;
-}
-.run-all-btn::before{
-  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(0,255,136,0.1),transparent);
-  transition:left 0.5s;
-}
+.run-all-btn{margin:12px 16px;padding:10px;border:1px solid var(--gc);background:var(--gb);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--g);letter-spacing:0.2em;cursor:pointer;text-align:center;transition:all 0.3s;position:relative;overflow:hidden;}
+.run-all-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,255,136,0.1),transparent);transition:left 0.5s;}
 .run-all-btn:hover::before{left:100%;}
 .run-all-btn:hover{border-color:var(--g);background:var(--gb2);}
 .run-all-btn:disabled{opacity:0.4;cursor:not-allowed;}
-
-/* METRICS MINI */
 .metric-mini{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,255,136,0.06);}
 .metric-mini:last-child{border-bottom:none;}
 .metric-mini-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);letter-spacing:0.1em;}
 .metric-mini-val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--g);}
-
-/* ── TRADING BOT PANEL ── */
-.bot-panel{
-  margin:12px 16px;
-  border:1px solid rgba(0,255,136,0.2);
-  background:rgba(0,12,6,0.7);
-}
-.bot-panel-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 10px;border-bottom:1px solid rgba(0,255,136,0.12);
-  background:rgba(0,255,136,0.04);
-}
-.bot-panel-title{
-  font-family:'Share Tech Mono',monospace;font-size:8px;
-  color:rgba(0,255,136,0.8);letter-spacing:2px;
-  display:flex;align-items:center;gap:6px;
-}
-.bot-sdot{
-  width:5px;height:5px;border-radius:50%;
-  background:rgba(0,255,136,0.2);flex-shrink:0;
-}
+.bot-panel{margin:12px 16px;border:1px solid rgba(0,255,136,0.2);background:rgba(0,12,6,0.7);}
+.bot-panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(0,255,136,0.12);background:rgba(0,255,136,0.04);}
+.bot-panel-title{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(0,255,136,0.8);letter-spacing:2px;display:flex;align-items:center;gap:6px;}
+.bot-sdot{width:5px;height:5px;border-radius:50%;background:rgba(0,255,136,0.2);flex-shrink:0;}
 .bot-sdot.live{background:#00ff88;box-shadow:0 0 5px #00ff88;animation:blink 1.5s infinite;}
 .bot-sdot.paper{background:#ffd740;box-shadow:0 0 5px #ffd740;}
-.bot-open-link{
-  font-family:'Share Tech Mono',monospace;font-size:7px;
-  color:rgba(0,255,136,0.5);border:1px solid rgba(0,255,136,0.2);
-  padding:2px 7px;text-decoration:none;letter-spacing:1px;
-  transition:all 0.2s;
-}
+.bot-open-link{font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.5);border:1px solid rgba(0,255,136,0.2);padding:2px 7px;text-decoration:none;letter-spacing:1px;transition:all 0.2s;}
 .bot-open-link:hover{color:#00ff88;border-color:rgba(0,255,136,0.5);background:rgba(0,255,136,0.06);}
-.bot-prices{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  border-bottom:1px solid rgba(0,255,136,0.08);
-}
-.bot-price-cell{
-  padding:5px 8px;border-right:1px solid rgba(0,255,136,0.08);
-}
+.bot-prices{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid rgba(0,255,136,0.08);}
+.bot-price-cell{padding:5px 8px;border-right:1px solid rgba(0,255,136,0.08);}
 .bot-price-cell:last-child{border-right:none;}
 .bot-price-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.3);letter-spacing:1px;}
 .bot-price-val{font-family:'Orbitron',monospace;font-size:9px;color:rgba(0,255,136,0.8);margin-top:2px;}
-.bot-stats{
-  display:grid;grid-template-columns:repeat(2,1fr);
-  border-bottom:1px solid rgba(0,255,136,0.08);
-}
-.bot-stat-cell{
-  padding:6px 8px;border-right:1px solid rgba(0,255,136,0.08);
-}
+.bot-stats{display:grid;grid-template-columns:repeat(2,1fr);border-bottom:1px solid rgba(0,255,136,0.08);}
+.bot-stat-cell{padding:6px 8px;border-right:1px solid rgba(0,255,136,0.08);}
 .bot-stat-cell:nth-child(2){border-right:none;}
 .bot-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.3);letter-spacing:1px;}
 .bot-stat-val{font-family:'Orbitron',monospace;font-size:11px;color:rgba(0,255,136,0.9);margin-top:2px;}
@@ -171,143 +88,62 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 .bot-trades-list{max-height:100px;overflow-y:auto;}
 .bot-trades-list::-webkit-scrollbar{width:2px;}
 .bot-trades-list::-webkit-scrollbar-thumb{background:rgba(0,255,136,0.15);}
-.bot-trade-row{
-  display:grid;grid-template-columns:44px 36px 1fr 52px;gap:4px;
-  padding:4px 8px;border-bottom:1px solid rgba(0,255,136,0.05);
-  font-family:'Share Tech Mono',monospace;font-size:8px;
-  color:rgba(0,255,136,0.4);align-items:center;
-}
+.bot-trade-row{display:grid;grid-template-columns:44px 36px 1fr 52px;gap:4px;padding:4px 8px;border-bottom:1px solid rgba(0,255,136,0.05);font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(0,255,136,0.4);align-items:center;}
 .bot-trade-buy{color:#00ff88;}
 .bot-trade-sell{color:#ff5252;}
 .bot-trade-pnl-pos{color:#00ff88;}
 .bot-trade-pnl-neg{color:#ff5252;}
-.bot-empty-msg{
-  padding:14px 8px;text-align:center;
-  font-family:'Share Tech Mono',monospace;font-size:8px;
-  color:rgba(0,255,136,0.18);letter-spacing:1px;
-}
-.bot-mode-badge{
-  font-family:'Share Tech Mono',monospace;font-size:7px;
-  letter-spacing:1px;padding:1px 5px;
-}
+.bot-empty-msg{padding:14px 8px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(0,255,136,0.18);letter-spacing:1px;}
+.bot-mode-badge{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:1px;padding:1px 5px;}
 .bot-mode-badge.paper{color:#ffd740;}
 .bot-mode-badge.live{color:#00ff88;}
 .bot-mode-badge.offline{color:rgba(0,255,136,0.3);}
-
-/* CENTER */
 #center{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#output-panel{
-  flex:1;padding:20px 24px;overflow-y:auto;
-  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
-}
+#output-panel{flex:1;padding:20px 24px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
 #output-panel::-webkit-scrollbar{width:4px;}
-#output-panel::-webkit-scrollbar-track{background:transparent;}
 #output-panel::-webkit-scrollbar-thumb{background:var(--border);}
-.panel-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);
-}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .panel-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--g);letter-spacing:0.2em;}
 .panel-tabs{display:flex;gap:2px;}
-.ptab{
-  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);
-  padding:4px 10px;border:1px solid transparent;cursor:pointer;
-  letter-spacing:0.15em;transition:all 0.2s;background:none;
-}
+.ptab{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);padding:4px 10px;border:1px solid transparent;cursor:pointer;letter-spacing:0.15em;transition:all 0.2s;background:none;}
 .ptab:hover{border-color:var(--border);color:var(--g);}
 .ptab.active{border-color:var(--gc);color:var(--g);background:var(--gb);}
-.output-screen{
-  background:rgba(0,12,6,0.8);border:1px solid var(--border);
-  padding:16px;min-height:140px;margin-bottom:16px;
-  font-family:'Share Tech Mono',monospace;font-size:11px;
-  color:#a0ffcc;line-height:1.7;white-space:pre-wrap;
-  position:relative;overflow:hidden;
-}
-.output-screen::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gc),transparent);
-}
-.output-cursor::after{content:'_';animation:blink 1s infinite;color:var(--g);}
-.output-empty{color:rgba(0,255,136,0.25);font-style:normal;}
+.output-screen{background:rgba(0,12,6,0.8);border:1px solid var(--border);padding:16px;min-height:140px;margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:11px;color:#a0ffcc;line-height:1.7;white-space:pre-wrap;position:relative;overflow:hidden;}
+.output-screen::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gc),transparent);}
+.output-empty{color:rgba(0,255,136,0.25);}
 .output-loading{color:#ffcc00;}
 .topic-row{display:flex;gap:8px;margin-bottom:16px;}
-.topic-input{
-  flex:1;background:rgba(0,12,6,0.8);border:1px solid var(--border);
-  padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;
-  color:var(--g);outline:none;letter-spacing:0.05em;
-}
+.topic-input{flex:1;background:rgba(0,12,6,0.8);border:1px solid var(--border);padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--g);outline:none;letter-spacing:0.05em;}
 .topic-input::placeholder{color:rgba(0,255,136,0.25);}
 .topic-input:focus{border-color:var(--gc);}
 .action-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
-.act-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:6px 14px;border:1px solid var(--border);background:var(--gb);
-  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--g);
-  cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;
-}
+.act-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--border);background:var(--gb);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--g);cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;}
 .act-btn:hover{border-color:var(--gc);background:var(--gb2);}
 .act-btn.success{border-color:var(--g);color:#fff;}
 .pipeline-table{width:100%;border-collapse:collapse;}
-.pipeline-table th{
-  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);
-  letter-spacing:0.15em;padding:8px 12px;text-align:left;
-  border-bottom:1px solid var(--border);
-}
-.pipeline-table td{
-  padding:10px 12px;border-bottom:1px solid rgba(0,255,136,0.06);
-  font-family:'Rajdhani',sans-serif;font-size:13px;color:#c0ffe0;
-}
-.stage-pill{
-  display:inline-block;padding:2px 8px;font-family:'Share Tech Mono',monospace;
-  font-size:8px;letter-spacing:0.1em;border:1px solid;
-}
+.pipeline-table th{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);letter-spacing:0.15em;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.pipeline-table td{padding:10px 12px;border-bottom:1px solid rgba(0,255,136,0.06);font-family:'Rajdhani',sans-serif;font-size:13px;color:#c0ffe0;}
+.stage-pill{display:inline-block;padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.1em;border:1px solid;}
 .stage-new{color:#4488ff;border-color:rgba(68,136,255,0.4);background:rgba(68,136,255,0.08);}
 .stage-contacted{color:#ffcc00;border-color:rgba(255,204,0,0.4);background:rgba(255,204,0,0.08);}
 .stage-replied{color:var(--g);border-color:rgba(0,255,136,0.4);background:var(--gb);}
 .stage-closed{color:#888;border-color:rgba(136,136,136,0.3);background:rgba(136,136,136,0.05);}
-.stage-sel{
-  background:rgba(0,12,6,0.8);border:1px solid var(--border);
-  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--g);
-  padding:3px 6px;outline:none;cursor:pointer;
-}
+.stage-sel{background:rgba(0,12,6,0.8);border:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--g);padding:3px 6px;outline:none;cursor:pointer;}
 .add-row{display:flex;gap:8px;margin-top:12px;}
-.add-inp{
-  flex:1;background:rgba(0,12,6,0.8);border:1px solid var(--border);
-  padding:6px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:var(--g);outline:none;
-}
+.add-inp{flex:1;background:rgba(0,12,6,0.8);border:1px solid var(--border);padding:6px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--g);outline:none;}
 .add-inp:focus{border-color:var(--gc);}
 .add-inp::placeholder{color:rgba(0,255,136,0.2);}
-.log-entry{
-  display:flex;gap:12px;padding:5px 0;
-  border-bottom:1px solid rgba(0,255,136,0.04);
-  font-family:'Share Tech Mono',monospace;font-size:9px;line-height:1.5;
-}
+.log-entry{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid rgba(0,255,136,0.04);font-family:'Share Tech Mono',monospace;font-size:9px;line-height:1.5;}
 .log-time{color:rgba(0,255,136,0.35);flex-shrink:0;width:44px;}
 .log-agent-name{color:#ffcc00;flex-shrink:0;width:100px;}
 .log-msg{color:#80ccaa;}
-
-/* RIGHT PANEL */
-#right-panel{
-  width:200px;flex-shrink:0;
-  border-left:1px solid var(--border);
-  background:rgba(0,8,4,0.92);backdrop-filter:blur(10px);
-  display:flex;flex-direction:column;overflow:hidden;
-}
+#right-panel{width:200px;flex-shrink:0;border-left:1px solid var(--border);background:rgba(0,8,4,0.92);backdrop-filter:blur(10px);display:flex;flex-direction:column;overflow:hidden;}
 .rp-section{padding:12px 14px;border-bottom:1px solid var(--border);}
 .rp-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gc);letter-spacing:0.2em;margin-bottom:10px;}
-.memory-item{
-  padding:6px 8px;margin-bottom:4px;
-  background:rgba(0,255,136,0.04);border-left:2px solid var(--border);
-  font-family:'Share Tech Mono',monospace;font-size:8px;color:#80ccaa;line-height:1.5;
-}
+.memory-item{padding:6px 8px;margin-bottom:4px;background:rgba(0,255,136,0.04);border-left:2px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:8px;color:#80ccaa;line-height:1.5;}
 .memory-item.has-data{border-left-color:var(--g);color:#c0ffe0;}
 .mem-agent{font-size:7px;color:var(--gc);margin-bottom:2px;letter-spacing:0.1em;}
-#scanlines{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:5;
-  pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
-}
+#scanlines{position:fixed;top:0;left:0;width:100%;height:100%;z-index:5;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
 .corner-dec{position:fixed;width:40px;height:40px;z-index:11;pointer-events:none;}
 .corner-dec.tl{top:0;left:0;border-top:2px solid var(--gc);border-left:2px solid var(--gc);}
 .corner-dec.tr{top:0;right:0;border-top:2px solid var(--gc);border-right:2px solid var(--gc);}
@@ -318,32 +154,16 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 *::-webkit-scrollbar-thumb{background:var(--border);}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
-#pw-gate{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;
-  background:#000;display:flex;align-items:center;justify-content:center;
-  flex-direction:column;
-}
-.pw-box{
-  border:1px solid var(--gc);background:rgba(0,12,6,0.95);
-  padding:40px 48px;text-align:center;position:relative;max-width:400px;width:90%;
-}
+#pw-gate{position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.pw-box{border:1px solid var(--gc);background:rgba(0,12,6,0.95);padding:40px 48px;text-align:center;position:relative;max-width:400px;width:90%;}
 .pw-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--g),transparent);}
 .pw-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--g);letter-spacing:0.2em;margin-bottom:6px;}
 .pw-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gc);letter-spacing:0.25em;margin-bottom:32px;}
 .pw-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gc);letter-spacing:0.2em;margin-bottom:10px;text-align:left;}
-.pw-input{
-  width:100%;background:rgba(0,0,0,0.6);border:1px solid var(--border);
-  padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:13px;
-  color:var(--g);outline:none;letter-spacing:0.15em;margin-bottom:16px;
-  text-align:center;
-}
+.pw-input{width:100%;background:rgba(0,0,0,0.6);border:1px solid var(--border);padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--g);outline:none;letter-spacing:0.15em;margin-bottom:16px;text-align:center;}
 .pw-input:focus{border-color:var(--gc);}
 .pw-input::placeholder{color:rgba(0,255,136,0.2);letter-spacing:0.1em;}
-.pw-btn{
-  width:100%;padding:12px;border:1px solid var(--gc);background:var(--gb);
-  font-family:'Orbitron',monospace;font-size:10px;font-weight:700;
-  color:var(--g);letter-spacing:0.25em;cursor:pointer;transition:all 0.2s;
-}
+.pw-btn{width:100%;padding:12px;border:1px solid var(--gc);background:var(--gb);font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--g);letter-spacing:0.25em;cursor:pointer;transition:all 0.2s;}
 .pw-btn:hover{background:var(--gb2);border-color:var(--g);}
 .pw-err{font-family:'Share Tech Mono',monospace;font-size:9px;color:#ff4444;letter-spacing:0.1em;margin-top:12px;min-height:16px;}
 .pw-corner{position:absolute;width:10px;height:10px;}
@@ -357,7 +177,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 </head>
 <body>
 
-<!-- PASSWORD GATE -->
 <div id="pw-gate">
   <div class="pw-box">
     <div class="pw-corner tl"></div><div class="pw-corner tr"></div>
@@ -373,13 +192,10 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
 
 <canvas id="bg"></canvas>
 <div id="scanlines"></div>
-<div class="corner-dec tl"></div>
-<div class="corner-dec tr"></div>
-<div class="corner-dec bl"></div>
-<div class="corner-dec br"></div>
+<div class="corner-dec tl"></div><div class="corner-dec tr"></div>
+<div class="corner-dec bl"></div><div class="corner-dec br"></div>
 
 <div id="hud">
-  <!-- TOPBAR -->
   <div id="topbar">
     <div class="logo-block">
       <div class="logo-hex">
@@ -404,55 +220,38 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
   </div>
 
   <div id="main">
-    <!-- SIDEBAR -->
     <div id="sidebar">
       <button class="run-all-btn" id="runAllBtn" onclick="runAllAgents()">&#9658; INITIATE ALL AGENTS</button>
-
       <div class="sidebar-section">
         <div class="sidebar-label">// AGENT MATRIX</div>
         <div class="agent-item" id="ai-research" onclick="selectAgent('research')">
           <div class="agent-ico" style="border-color:rgba(0,255,136,0.4);color:#00ff88">&#9906;</div>
-          <div class="agent-info">
-            <div class="agent-name">Market Resear...</div>
-            <div class="agent-state" id="st-research">STANDBY</div>
-          </div>
+          <div class="agent-info"><div class="agent-name">Market Resear...</div><div class="agent-state" id="st-research">STANDBY</div></div>
           <button class="run-btn" id="rb-research" onclick="event.stopPropagation();runAgent('research')">RUN</button>
         </div>
         <div class="agent-item" id="ai-strategy" onclick="selectAgent('strategy')">
           <div class="agent-ico" style="border-color:rgba(64,196,255,0.4);color:#40c4ff">&#9651;</div>
-          <div class="agent-info">
-            <div class="agent-name">Strategy</div>
-            <div class="agent-state" id="st-strategy">STANDBY</div>
-          </div>
+          <div class="agent-info"><div class="agent-name">Strategy</div><div class="agent-state" id="st-strategy">STANDBY</div></div>
           <button class="run-btn" id="rb-strategy" onclick="event.stopPropagation();runAgent('strategy')">RUN</button>
         </div>
         <div class="agent-item" id="ai-xcontent" onclick="selectAgent('xcontent')">
           <div class="agent-ico" style="border-color:rgba(179,136,255,0.4);color:#b388ff">&#9673;</div>
-          <div class="agent-info">
-            <div class="agent-name">X Content</div>
-            <div class="agent-state" id="st-xcontent">STANDBY</div>
-          </div>
+          <div class="agent-info"><div class="agent-name">X Content</div><div class="agent-state" id="st-xcontent">STANDBY</div></div>
           <button class="run-btn" id="rb-xcontent" onclick="event.stopPropagation();runAgent('xcontent')">RUN</button>
         </div>
         <div class="agent-item" id="ai-linkedin" onclick="selectAgent('linkedin')">
           <div class="agent-ico" style="border-color:rgba(255,215,64,0.4);color:#ffd740">&#9670;</div>
-          <div class="agent-info">
-            <div class="agent-name">LinkedIn</div>
-            <div class="agent-state" id="st-linkedin">STANDBY</div>
-          </div>
+          <div class="agent-info"><div class="agent-name">LinkedIn</div><div class="agent-state" id="st-linkedin">STANDBY</div></div>
           <button class="run-btn" id="rb-linkedin" onclick="event.stopPropagation();runAgent('linkedin')">RUN</button>
         </div>
         <div class="agent-item" id="ai-email" onclick="selectAgent('email')">
           <div class="agent-ico" style="border-color:rgba(255,82,82,0.4);color:#ff5252">&#9993;</div>
-          <div class="agent-info">
-            <div class="agent-name">Client Email</div>
-            <div class="agent-state" id="st-email">STANDBY</div>
-          </div>
+          <div class="agent-info"><div class="agent-name">Client Email</div><div class="agent-state" id="st-email">STANDBY</div></div>
           <button class="run-btn" id="rb-email" onclick="event.stopPropagation();runAgent('email')">RUN</button>
         </div>
       </div>
 
-      <!-- ── TRADING BOT PANEL ── -->
+      <!-- TRADING BOT PANEL -->
       <div class="sidebar-section">
         <div class="sidebar-label">// TRADING BOT</div>
         <div class="bot-panel">
@@ -463,44 +262,20 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
             </div>
             <a href="/lattice-trading-bot.html" target="_blank" class="bot-open-link">OPEN ↗</a>
           </div>
-          <!-- Prices -->
           <div class="bot-prices">
-            <div class="bot-price-cell">
-              <div class="bot-price-lbl">BTC</div>
-              <div class="bot-price-val" id="bp-btc" style="color:#ffd740">--</div>
-            </div>
-            <div class="bot-price-cell">
-              <div class="bot-price-lbl">ETH</div>
-              <div class="bot-price-val" id="bp-eth" style="color:#40c4ff">--</div>
-            </div>
-            <div class="bot-price-cell">
-              <div class="bot-price-lbl">SOL</div>
-              <div class="bot-price-val" id="bp-sol" style="color:#b388ff">--</div>
-            </div>
+            <div class="bot-price-cell"><div class="bot-price-lbl">BTC</div><div class="bot-price-val" id="bp-btc" style="color:#ffd740">--</div></div>
+            <div class="bot-price-cell"><div class="bot-price-lbl">ETH</div><div class="bot-price-val" id="bp-eth" style="color:#40c4ff">--</div></div>
+            <div class="bot-price-cell"><div class="bot-price-lbl">SOL</div><div class="bot-price-val" id="bp-sol" style="color:#b388ff">--</div></div>
           </div>
-          <!-- Stats -->
           <div class="bot-stats">
-            <div class="bot-stat-cell">
-              <div class="bot-stat-lbl">P&L</div>
-              <div class="bot-stat-val" id="bp-pnl">$0.00</div>
-            </div>
-            <div class="bot-stat-cell">
-              <div class="bot-stat-lbl">WIN RATE</div>
-              <div class="bot-stat-val yellow" id="bp-wr">0%</div>
-            </div>
-            <div class="bot-stat-cell" style="border-top:1px solid rgba(0,255,136,0.08);">
-              <div class="bot-stat-lbl">TRADES</div>
-              <div class="bot-stat-val" id="bp-trades">0</div>
-            </div>
-            <div class="bot-stat-cell" style="border-top:1px solid rgba(0,255,136,0.08);">
-              <div class="bot-stat-lbl">UPTIME</div>
-              <div class="bot-stat-val yellow" id="bp-uptime">--:--</div>
-            </div>
+            <div class="bot-stat-cell"><div class="bot-stat-lbl">P&L</div><div class="bot-stat-val" id="bp-pnl">$0.00</div></div>
+            <div class="bot-stat-cell"><div class="bot-stat-lbl">WIN RATE</div><div class="bot-stat-val yellow" id="bp-wr">0%</div></div>
+            <div class="bot-stat-cell" style="border-top:1px solid rgba(0,255,136,0.08)"><div class="bot-stat-lbl">TRADES</div><div class="bot-stat-val" id="bp-trades">0</div></div>
+            <div class="bot-stat-cell" style="border-top:1px solid rgba(0,255,136,0.08)"><div class="bot-stat-lbl">UPTIME</div><div class="bot-stat-val yellow" id="bp-uptime">--:--</div></div>
           </div>
-          <!-- Recent trades -->
           <div style="padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:7px;color:rgba(0,255,136,0.25);letter-spacing:1px;border-bottom:1px solid rgba(0,255,136,0.06);">RECENT FILLS</div>
           <div class="bot-trades-list" id="bp-trades-list">
-            <div class="bot-empty-msg">&gt; START BOT TO SEE TRADES</div>
+            <div class="bot-empty-msg">&gt; BOT OFFLINE</div>
           </div>
         </div>
       </div>
@@ -514,7 +289,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
       </div>
     </div>
 
-    <!-- CENTER -->
     <div id="center">
       <div id="output-panel">
         <div class="panel-header">
@@ -525,7 +299,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
             <button class="ptab" onclick="switchTab('log')">ACTIVITY LOG</button>
           </div>
         </div>
-
         <div class="tab-panel active" id="tp-output">
           <div class="topic-row">
             <input class="topic-input" id="topicInput" placeholder="> ENTER MISSION CONTEXT OR TOPIC (OPTIONAL)..." />
@@ -540,7 +313,6 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
             <button class="act-btn" onclick="saveMemory()">&#9906; SAVE TO MEMORY</button>
           </div>
         </div>
-
         <div class="tab-panel" id="tp-pipeline">
           <table class="pipeline-table">
             <thead><tr><th>IDENTITY</th><th>CHANNEL</th><th>STAGE</th><th>UPDATE</th></tr></thead>
@@ -552,14 +324,12 @@ canvas#bg{position:fixed;top:0;left:0;z-index:0;}
             <button class="act-btn" onclick="addLead()">+ ADD</button>
           </div>
         </div>
-
         <div class="tab-panel" id="tp-log">
           <div id="logList"></div>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT -->
     <div id="right-panel">
       <div class="rp-section">
         <div class="rp-label">// AGENT MEMORY</div>
@@ -687,70 +457,70 @@ function addLead(){const name=document.getElementById('newName').value.trim();co
 function updateStage(i,stage){leads[i].stage=stage;renderPipeline();addLog('PIPELINE',leads[i].name+' → '+STAGE_LABELS[stage]);}
 function switchTab(tab){document.querySelectorAll('.ptab').forEach((b,i)=>b.classList.toggle('active',['output','pipeline','log'][i]===tab));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.getElementById('tp-'+tab).classList.add('active');}
 
-/* ── TRADING BOT SYNC ── */
-function syncBotPanel(){
-  try{
-    const saved=localStorage.getItem('lattice_bot_state');
-    if(!saved)return;
-    const d=JSON.parse(saved);
+/* ── TRADING BOT SYNC (via Cloudflare Worker) ── */
+const BOT_WORKER = 'https://lattice-bot.latticecollective-io.workers.dev';
 
-    // Status dot + mode badge
-    const dot=document.getElementById('bot-sdot');
-    const badge=document.getElementById('bot-mode-badge');
-    if(d.running&&d.mode==='live'){dot.className='bot-sdot live';badge.textContent='LIVE';badge.className='bot-mode-badge live';}
-    else if(d.running&&d.mode==='paper'){dot.className='bot-sdot paper';badge.textContent='PAPER';badge.className='bot-mode-badge paper';}
-    else{dot.className='bot-sdot offline';badge.textContent='OFFLINE';badge.className='bot-mode-badge offline';}
+async function syncBotPanel() {
+  try {
+    const res = await fetch(BOT_WORKER + '/state');
+    const s = await res.json();
+    const dot = document.getElementById('bot-sdot');
+    const badge = document.getElementById('bot-mode-badge');
+    const isOnline = s.running && !s.paused;
 
-    // Prices
-    if(d.prices){
-      const btc=d.prices['BTC-USDC'];const eth=d.prices['ETH-USDC'];const sol=d.prices['SOL-USDC'];
-      if(btc)document.getElementById('bp-btc').textContent='$'+Math.round(btc).toLocaleString();
-      if(eth)document.getElementById('bp-eth').textContent='$'+parseFloat(eth).toFixed(0);
-      if(sol)document.getElementById('bp-sol').textContent='$'+parseFloat(sol).toFixed(1);
+    if (isOnline && s.mode === 'live') {
+      dot.className = 'bot-sdot live'; badge.textContent = 'LIVE'; badge.className = 'bot-mode-badge live';
+    } else if (isOnline && s.mode === 'paper') {
+      dot.className = 'bot-sdot paper'; badge.textContent = 'PAPER'; badge.className = 'bot-mode-badge paper';
+    } else {
+      dot.className = 'bot-sdot offline'; badge.textContent = s.paused ? 'PAUSED' : 'OFFLINE'; badge.className = 'bot-mode-badge offline';
     }
 
-    // P&L
-    const pnl=d.pnl||0;
-    const pnlEl=document.getElementById('bp-pnl');
-    pnlEl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2);
-    pnlEl.className='bot-stat-val '+(pnl>=0?'pos':'neg');
+    const prices = s.prices || {};
+    if (prices['BTC-USDC']) document.getElementById('bp-btc').textContent = '$' + Math.round(prices['BTC-USDC']).toLocaleString();
+    if (prices['ETH-USDC']) document.getElementById('bp-eth').textContent = '$' + parseFloat(prices['ETH-USDC']).toFixed(0);
+    if (prices['SOL-USDC']) document.getElementById('bp-sol').textContent = '$' + parseFloat(prices['SOL-USDC']).toFixed(1);
 
-    // Topbar P&L
-    const topPnl=document.getElementById('metBotPnl');
-    topPnl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2);
-    topPnl.style.color=pnl>=0?'#00ff88':'#ff5252';
+    const pnl = s.pnl || 0;
+    const pnlEl = document.getElementById('bp-pnl');
+    pnlEl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+    pnlEl.className = 'bot-stat-val ' + (pnl >= 0 ? 'pos' : 'neg');
 
-    // Win rate
-    const wr=d.trades>0?Math.round((d.wins/d.trades)*100):0;
-    document.getElementById('bp-wr').textContent=wr+'%';
-    document.getElementById('bp-trades').textContent=d.trades||0;
-    document.getElementById('bp-uptime').textContent=d.uptime||'--:--';
+    const topPnl = document.getElementById('metBotPnl');
+    topPnl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+    topPnl.style.color = pnl >= 0 ? '#00ff88' : '#ff5252';
 
-    // Recent trades
-    const list=document.getElementById('bp-trades-list');
-    if(d.recentTrades&&d.recentTrades.length>0){
-      list.innerHTML=d.recentTrades.slice(0,6).map(t=>`
+    const trades = s.trades || [];
+    const wr = trades.length > 0 ? Math.round(((s.wins||0) / trades.length) * 100) : 0;
+    document.getElementById('bp-wr').textContent = wr + '%';
+    document.getElementById('bp-trades').textContent = trades.length;
+    document.getElementById('bp-uptime').textContent = s.uptime || '--:--';
+
+    const list = document.getElementById('bp-trades-list');
+    if (trades.length > 0) {
+      list.innerHTML = trades.slice(0,6).map(t => `
         <div class="bot-trade-row">
           <span>${t.time}</span>
-          <span class="bot-trade-${t.side}">${t.side.toUpperCase()}</span>
-          <span>${t.pair?t.pair.split('/')[0]:''}</span>
+          <span class="bot-trade-${t.side}">${(t.side||'').toUpperCase()}</span>
+          <span>${(t.pair||'').split('/')[0]}</span>
           <span class="${parseFloat(t.pnl)>=0?'bot-trade-pnl-pos':'bot-trade-pnl-neg'}">${parseFloat(t.pnl)>=0?'+':'-'}$${Math.abs(parseFloat(t.pnl)).toFixed(2)}</span>
         </div>`).join('');
-    } else if(d.running){
-      list.innerHTML='<div class="bot-empty-msg">&gt; WAITING FOR FILLS...</div>';
+    } else if (isOnline) {
+      list.innerHTML = '<div class="bot-empty-msg">&gt; WAITING FOR FILLS...</div>';
+    } else {
+      list.innerHTML = '<div class="bot-empty-msg">&gt; BOT OFFLINE</div>';
     }
-  }catch(e){}
+  } catch(e) {}
 }
 
-// Sync every 5 seconds
-setInterval(syncBotPanel,5000);
+setInterval(syncBotPanel, 5000);
 syncBotPanel();
 
 /* ── INIT ── */
 renderLog();renderPipeline();updateMetrics();
 addLog('SYSTEM','LATTICE COMMAND CENTER ONLINE');
 addLog('SYSTEM','ALL 5 AGENTS STANDING BY');
-addLog('TRADING BOT','PANEL ACTIVE — OPEN BOT TO START');
+addLog('TRADING BOT','PANEL ACTIVE — SYNCING WITH CLOUD BOT');
 </script>
 </body>
 </html>
