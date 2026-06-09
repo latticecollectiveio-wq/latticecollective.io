@@ -565,8 +565,7 @@ let botState = null;
 let startTime = null;
 let uptimeInterval = null;
 let workerPollInterval = null;
-let ws = null;
-let wsReconnectTimer = null;
+
 
 const prices = { BTC: null, ETH: null, SOL: null };
 const prevPrices = { BTC: null, ETH: null, SOL: null };
@@ -588,67 +587,45 @@ function log(msg, type='info') {
 function clearLog() { document.getElementById('logBox').innerHTML = ''; }
 
 // ============================================================
-// COINBASE WEBSOCKET — LIVE PRICES
+// COINBASE REST — LIVE PRICES (polls every 2s, works on all devices)
 // ============================================================
-function connectPriceFeed() {
-  if (ws) { try { ws.close(); } catch(e){} }
+const PRICE_PAIRS = [
+  { sym: 'BTC', id: 'BTC-USD' },
+  { sym: 'ETH', id: 'ETH-USD' },
+  { sym: 'SOL', id: 'SOL-USD' }
+];
+let pricePollInterval = null;
 
-  setWsStatus(false, 'CONNECTING...');
-  log('Connecting to Coinbase price feed...', 'info');
-
+async function fetchPrice(sym, id) {
   try {
-    ws = new WebSocket('wss://advanced-trade-api.coinbase.com/ws/public');
+    const res = await fetch(`https://api.coinbase.com/v2/prices/${id}/spot`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const price = parseFloat(data.data.amount);
+    if (!isNaN(price)) {
+      prevPrices[sym] = prices[sym];
+      prices[sym] = price;
+      updatePriceDisplay(sym);
+    }
+  } catch(e) {}
+}
 
-    ws.onopen = () => {
-      setWsStatus(true, 'LIVE');
-      log('Price feed connected — live data streaming', 'ok');
-      ws.send(JSON.stringify({
-        type: 'subscribe',
-        channel: 'ticker',
-        product_ids: ['BTC-USDC', 'ETH-USDC', 'SOL-USDC']
-      }));
-    };
+async function fetchAllPrices() {
+  await Promise.all(PRICE_PAIRS.map(p => fetchPrice(p.sym, p.id)));
+}
 
-    ws.onmessage = (evt) => {
-      try {
-        const data = JSON.parse(evt.data);
-        if (data.channel === 'ticker' && data.events) {
-          data.events.forEach(event => {
-            if (event.tickers) {
-              event.tickers.forEach(ticker => {
-                const sym = ticker.product_id.split('-')[0];
-                const price = parseFloat(ticker.price);
-                const chg = parseFloat(ticker.price_percent_chg_24h || 0);
-                if (!isNaN(price)) {
-                  prevPrices[sym] = prices[sym];
-                  prices[sym] = price;
-                  changes[sym] = chg;
-                  updatePriceDisplay(sym);
-                }
-              });
-            }
-          });
-        }
-      } catch(e) {}
-    };
-
-    ws.onerror = () => {
-      setWsStatus(false, 'ERROR');
-      log('Price feed error — retrying in 5s', 'warn');
-    };
-
-    ws.onclose = () => {
-      setWsStatus(false, 'RECONNECTING...');
-      log('Price feed disconnected — reconnecting...', 'warn');
-      clearTimeout(wsReconnectTimer);
-      wsReconnectTimer = setTimeout(connectPriceFeed, 5000);
-    };
-
-  } catch(e) {
-    setWsStatus(false, 'FAILED');
-    log('WebSocket failed: ' + e.message, 'err');
-    wsReconnectTimer = setTimeout(connectPriceFeed, 8000);
-  }
+function connectPriceFeed() {
+  setWsStatus(false, 'FETCHING...');
+  log('Connecting to Coinbase price feed...', 'info');
+  fetchAllPrices().then(() => {
+    setWsStatus(true, 'LIVE');
+    log('Price feed live — updating every 2 seconds', 'ok');
+  });
+  clearInterval(pricePollInterval);
+  pricePollInterval = setInterval(async () => {
+    await fetchAllPrices();
+    setWsStatus(true, 'LIVE');
+  }, 2000);
 }
 
 function setWsStatus(live, label) {
@@ -715,10 +692,17 @@ function updateBotUI(data) {
   if (isRunning) {
     pill.className = 'status-pill ' + (data.mode === 'live' ? 'online' : 'paper');
     pillText.textContent = data.mode === 'live' ? 'LIVE' : 'PAPER';
-    if (!startTime) startTime = Date.now() - ((data.uptimeSeconds || 0) * 1000);
+    if (!startTime) startUptime(data.uptimeSeconds || 0);
   } else {
     pill.className = 'status-pill offline';
     pillText.textContent = 'OFFLINE';
+  }
+
+  // Live prices from Worker
+  if (data.prices) {
+    if (data.prices.BTC) { prevPrices.BTC = prices.BTC; prices.BTC = data.prices.BTC; updatePriceDisplay('BTC'); }
+    if (data.prices.ETH) { prevPrices.ETH = prices.ETH; prices.ETH = data.prices.ETH; updatePriceDisplay('ETH'); }
+    if (data.prices.SOL) { prevPrices.SOL = prices.SOL; prices.SOL = data.prices.SOL; updatePriceDisplay('SOL'); }
   }
 
   // P&L
@@ -793,8 +777,8 @@ function renderPositions(positions) {
 // ============================================================
 // UPTIME TICKER
 // ============================================================
-function startUptime() {
-  if (!startTime) startTime = Date.now();
+function startUptime(fromSeconds) {
+  startTime = fromSeconds ? Date.now() - (fromSeconds * 1000) : Date.now();
   clearInterval(uptimeInterval);
   uptimeInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -848,8 +832,7 @@ async function initBot() {
     if (res.ok) {
       log('Bot initialized successfully ✓', 'ok');
       log(`Mode: ${mode.toUpperCase()} | Capital: $${capital} | Pairs: ${pair1}${pair2!=='none'?' + '+pair2:''}`, 'ok');
-      startTime = Date.now();
-      startUptime();
+      startUptime(0);
       document.getElementById('configPanel').style.display = 'none';
       pollWorker();
     } else {
@@ -910,9 +893,6 @@ window.addEventListener('load', () => {
 
   // Start live price feed
   connectPriceFeed();
-
-  // Start uptime
-  startUptime();
 
   // Poll worker every 1 second
   pollWorker();
