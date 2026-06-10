@@ -795,7 +795,7 @@ function renderGrids(grids) {
       html += `<div class="grid-level">
         <span class="lnum">${o.type === 'buy' ? '▼' : '▲'}</span>
         <span class="lprice">$${o.price.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
-        <span style="font-size:9px;color:${o.type === 'buy' ? 'var(--green)' : 'var(--red)'};">${o.type.toUpperCase()}</span>
+        <span style="font-size:9px;color:${o.type === 'buy' ? 'var(--green)' : 'var(--red)'};">${(o.type || 'buy').toUpperCase()}</span>
         <span class="lstatus open">${o.paper ? 'PAPER' : 'LIVE'}</span>
       </div>`;
     });
@@ -869,7 +869,7 @@ async function initBot() {
     const data = await res.json();
 
     if (res.ok && data.ok) {
-      log(`Bot initialized ✓ — Mode: ${data.mode.toUpperCase()} | Orders: ${data.orders}`, 'ok');
+      log(`Bot initialized ✓ — Mode: ${(data.mode || mode).toUpperCase()} | Orders: ${data.orders || 0}`, 'ok');
       if (data.lastError) log('Warning: ' + data.lastError, 'warn');
       startUptime(0);
       document.getElementById('configPanel').style.display = 'none';
