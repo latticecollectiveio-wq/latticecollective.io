@@ -344,7 +344,7 @@
   <!-- HEADER -->
   <div class="header">
     <div class="logo-block">
-      <div class="logo-icon"></div>
+      <div class="logo-icon">◈</div>
       <div class="logo-text">
         <h1>LATTICE BOT</h1>
         <p>AUTONOMOUS TRADING SYSTEM</p>
@@ -382,22 +382,27 @@
     </div>
   </div>
 
+  <!-- ERROR BANNER -->
+  <div class="error-banner" id="errorBanner">
+    ⚠ &nbsp;<span id="errorText"></span>
+  </div>
+
   <!-- PAPER BANNER -->
   <div class="paper-banner" id="paperBanner">
-    ⚠ &nbsp;PAPER TRADING MODE — Simulated trades only. No real capital at risk. Switch to LIVE on June 11.
+    ⚠ &nbsp;PAPER TRADING MODE — Simulated trades only. No real capital at risk.
   </div>
 
   <!-- STATS -->
   <div class="main-grid">
     <div class="stat-card">
       <div class="stat-label">TOTAL P&L</div>
-      <div class="stat-value" id="pnlVal">$0.00</div>
+      <div class="stat-value" id="pnlVal">A$0.00</div>
       <div class="stat-sub" id="pnlPct">+0.00%</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">CAPITAL DEPLOYED</div>
       <div class="stat-value" id="capitalVal">$200</div>
-      <div class="stat-sub" id="modeLabel">PAPER MODE</div>
+      <div class="stat-sub" id="modeLabel">LIVE MODE</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">TRADES TODAY</div>
@@ -431,10 +436,10 @@
       <div class="panel-header">// BOT CONTROLS</div>
       <div class="panel-body">
         <div class="controls">
-          <button class="ctrl-btn stop" onclick="stopBot()">■ STOP BOT</button>
-          <button class="ctrl-btn pause" onclick="pauseBot()">⏸ PAUSE</button>
+          <button class="ctrl-btn stop"    onclick="stopBot()">■ STOP BOT</button>
+          <button class="ctrl-btn pause"   onclick="pauseBot()">⏸ PAUSE</button>
           <button class="ctrl-btn reconfig" onclick="showConfig()">⚙ RECONFIGURE</button>
-          <button class="ctrl-btn export" onclick="exportCSV()">↓ EXPORT CSV</button>
+          <button class="ctrl-btn export"  onclick="exportCSV()">↓ EXPORT CSV</button>
         </div>
       </div>
     </div>
@@ -445,7 +450,7 @@
     <div class="panel-header">// CONFIGURE TRADING BOT <span>CLOUDFLARE WORKER — 24/7</span></div>
     <div class="panel-body">
       <p style="font-size:10px;color:var(--text-dim);margin-bottom:16px;line-height:1.8;">
-        Configure your grid trading parameters. The bot runs 24/7 on Cloudflare — your phone can be off and it keeps trading.
+        Configure grid trading parameters. The bot runs 24/7 on Cloudflare — your phone can be off.
       </p>
       <div class="config-form">
         <div class="mode-toggle">
@@ -453,12 +458,12 @@
           <button class="mode-btn" id="btnLive" onclick="setMode('live')">⚡ Live Trading</button>
         </div>
         <div class="field full">
-          <label>CDP API KEY NAME</label>
+          <label>CDP API KEY NAME (organizations/xxx/apiKeys/xxx)</label>
           <input type="text" id="apiKeyName" placeholder="organizations/...">
         </div>
         <div class="field full">
-          <label>CDP PRIVATE KEY (SECRET)</label>
-          <input type="password" id="apiKeySecret" placeholder="-----BEGIN EC PRIVATE KEY-----">
+          <label>CDP PRIVATE KEY — full PEM including BEGIN/END lines</label>
+          <textarea id="apiKeySecret" rows="4" style="background:var(--bg3);border:1px solid var(--border);color:var(--text-bright);padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;width:100%;resize:vertical;" placeholder="-----BEGIN EC PRIVATE KEY-----&#10;...&#10;-----END EC PRIVATE KEY-----"></textarea>
         </div>
         <div class="field">
           <label>TRADING PAIR 1</label>
@@ -497,7 +502,7 @@
           <label>TAKE PROFIT %</label>
           <input type="number" id="takeProfit" value="3" step="0.1">
         </div>
-        <button class="btn-init" onclick="initBot()">▶ INITIALIZE BOT</button>
+        <button class="btn-init" id="initBtn" onclick="initBot()">▶ INITIALIZE BOT</button>
       </div>
     </div>
   </div>
@@ -507,13 +512,13 @@
     <div class="panel">
       <div class="panel-header">// BTC/USDC GRID</div>
       <div class="panel-body" id="btcGrid">
-        <div class="empty-state"><div class="icon">◈</div>Initialize bot to see grid levels</div>
+        <div class="empty-state"><div class="icon">◈</div>Initialize bot to see grid</div>
       </div>
     </div>
     <div class="panel">
       <div class="panel-header">// ETH/USDC GRID</div>
       <div class="panel-body" id="ethGrid">
-        <div class="empty-state"><div class="icon">◈</div>Initialize bot to see grid levels</div>
+        <div class="empty-state"><div class="icon">◈</div>Initialize bot to see grid</div>
       </div>
     </div>
   </div>
@@ -524,8 +529,7 @@
     <div class="panel-body" style="padding:0;">
       <div id="tradeHistoryBody">
         <div class="empty-state" style="padding:30px;">
-          <div class="icon">◈</div>
-          Bot is running in cloud. Trades will appear here.
+          <div class="icon">◈</div>No trades yet. Bot is scanning markets...
         </div>
       </div>
     </div>
@@ -544,7 +548,7 @@
   <!-- SYSTEM LOG -->
   <div class="panel">
     <div class="panel-header">
-      // SYSTEM LOG
+      // SYSTEM LOG <span class="tick" id="logTick" style="color:var(--green);display:none;">█</span>
       <button class="clear-btn" onclick="clearLog()">CLEAR</button>
     </div>
     <div class="panel-body" style="padding:0;">
@@ -557,174 +561,171 @@
 
 <script>
 // ============================================================
-// STATE
+// CONFIG
 // ============================================================
 const WORKER_URL = 'https://lattice-bot.latticecollective-io.workers.dev';
-let mode = 'paper';
+
+// ============================================================
+// STATE
+// ============================================================
+let mode = 'live';  // default to LIVE
 let botState = null;
 let startTime = null;
 let uptimeInterval = null;
 let workerPollInterval = null;
-
-
 const prices = { BTC: null, ETH: null, SOL: null };
 const prevPrices = { BTC: null, ETH: null, SOL: null };
-const changes = { BTC: null, ETH: null, SOL: null };
+
+// AUD conversion
+let audRate = 1.56; // fallback USD→AUD approx
+async function fetchAUDRate() {
+  try {
+    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=AUD');
+    const data = await res.json();
+    if (data.rates && data.rates.AUD) {
+      audRate = data.rates.AUD;
+      log('Exchange rate: 1 USD = A$' + audRate.toFixed(4), 'ok');
+    }
+  } catch(e) {
+    log('AUD rate fetch failed — using A$' + audRate.toFixed(2) + ' estimate', 'warn');
+  }
+}
+function fmtAUD(usd, decimals = 2) {
+  const val = parseFloat(usd || 0) * audRate;
+  return 'A$' + val.toLocaleString('en-AU', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function fmtAUDPrice(usd) {
+  const val = parseFloat(usd || 0) * audRate;
+  return 'A$' + val.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 // ============================================================
 // LOG
 // ============================================================
-function log(msg, type='info') {
+function log(msg, type = 'info') {
   const box = document.getElementById('logBox');
-  const now = new Date();
-  const t = now.toTimeString().slice(0,8);
+  const t = new Date().toTimeString().slice(0, 8);
   const line = document.createElement('div');
   line.className = 'log-line';
   line.innerHTML = `<span class="log-time">[${t}]</span><span class="log-msg ${type}">${msg}</span>`;
   box.appendChild(line);
   box.scrollTop = box.scrollHeight;
+  // Keep max 200 lines
+  while (box.children.length > 200) box.removeChild(box.firstChild);
 }
 function clearLog() { document.getElementById('logBox').innerHTML = ''; }
 
 // ============================================================
-// COINBASE REST — LIVE PRICES (polls every 2s, works on all devices)
+// PRICE DISPLAY — driven entirely by Worker /status response
 // ============================================================
-const PRICE_PAIRS = [
-  { sym: 'BTC', id: 'BTC-USD' },
-  { sym: 'ETH', id: 'ETH-USD' },
-  { sym: 'SOL', id: 'SOL-USD' }
-];
-let pricePollInterval = null;
-
-async function fetchPrice(sym, id) {
-  try {
-    const res = await fetch(`https://api.coinbase.com/v2/prices/${id}/spot`);
-    if (!res.ok) return;
-    const data = await res.json();
-    const price = parseFloat(data.data.amount);
-    if (!isNaN(price)) {
-      prevPrices[sym] = prices[sym];
-      prices[sym] = price;
-      updatePriceDisplay(sym);
-    }
-  } catch(e) {}
-}
-
-async function fetchAllPrices() {
-  await Promise.all(PRICE_PAIRS.map(p => fetchPrice(p.sym, p.id)));
-}
-
-function connectPriceFeed() {
-  setWsStatus(false, 'FETCHING...');
-  log('Connecting to Coinbase price feed...', 'info');
-  fetchAllPrices().then(() => {
-    setWsStatus(true, 'LIVE');
-    log('Price feed live — updating every 2 seconds', 'ok');
-  });
-  clearInterval(pricePollInterval);
-  pricePollInterval = setInterval(async () => {
-    await fetchAllPrices();
-    setWsStatus(true, 'LIVE');
-  }, 2000);
-}
-
-function setWsStatus(live, label) {
-  const dot = document.getElementById('wsDot');
-  const lbl = document.getElementById('wsLabel');
-  dot.className = 'ws-dot' + (live ? ' live' : '');
-  lbl.textContent = label;
-}
-
-function updatePriceDisplay(sym) {
-  const idMap = { BTC: 'btcPrice', ETH: 'ethPrice', SOL: 'solPrice' };
-  const chgMap = { BTC: 'btcChg', ETH: 'ethChg', SOL: 'solChg' };
-  const el = document.getElementById(idMap[sym]);
+function updatePriceDisplay(sym, price) {
+  const idMap  = { BTC: 'btcPrice', ETH: 'ethPrice', SOL: 'solPrice' };
+  const chgMap = { BTC: 'btcChg',   ETH: 'ethChg',   SOL: 'solChg' };
+  const el    = document.getElementById(idMap[sym]);
   const chgEl = document.getElementById(chgMap[sym]);
-  if (!el) return;
+  if (!el || !price) return;
 
-  const price = prices[sym];
   const prev = prevPrices[sym];
-  const chg = changes[sym] || 0;
+  prevPrices[sym] = prices[sym];
+  prices[sym] = price;
 
-  // Format price
-  let formatted;
-  if (sym === 'BTC') formatted = '$' + price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-  else formatted = '$' + price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  el.textContent = fmtAUDPrice(price);
 
-  el.textContent = formatted;
-
-  // Direction color
-  if (prev !== null) {
-    el.className = 'price-val ' + (price > prev ? 'up' : price < prev ? 'down' : 'neutral');
-    // Flash back to neutral after 1s
-    setTimeout(() => { if(el) el.className = 'price-val neutral'; }, 800);
+  if (prev !== null && prev !== price) {
+    el.className = 'price-val ' + (price > prev ? 'up' : 'down');
+    setTimeout(() => { if (el) el.className = 'price-val neutral'; }, 800);
   }
 
-  // Change %
-  chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
-  chgEl.className = 'price-chg ' + (chg >= 0 ? 'up' : 'down');
+  // 24h change placeholder (Worker doesn't provide this yet)
+  chgEl.textContent = '--';
+  chgEl.className = 'price-chg';
 }
 
 // ============================================================
-// WORKER POLL — BOT STATUS
+// WORKER POLL — every 5 seconds
 // ============================================================
 async function pollWorker() {
   try {
     const res = await fetch(WORKER_URL + '/status');
-    if (res.ok) {
-      const data = await res.json();
-      botState = data;
-      updateBotUI(data);
+    if (!res.ok) {
+      log('Worker HTTP ' + res.status, 'warn');
+      return;
+    }
+    const data = await res.json();
+    botState = data;
+
+    // Update price display from Worker response
+    if (data.prices) {
+      if (data.prices.BTC) updatePriceDisplay('BTC', data.prices.BTC);
+      if (data.prices.ETH) updatePriceDisplay('ETH', data.prices.ETH);
+      if (data.prices.SOL) updatePriceDisplay('SOL', data.prices.SOL);
+    }
+
+    // Mark price feed as live if we got prices
+    const hasPrices = data.prices && (data.prices.BTC || data.prices.ETH);
+    document.getElementById('wsDot').className = 'ws-dot' + (hasPrices ? ' live' : '');
+    document.getElementById('wsLabel').textContent = hasPrices ? 'LIVE' : 'NO PRICES';
+
+    updateBotUI(data);
+
+    // Show Worker error if any
+    if (data.lastError) {
+      document.getElementById('errorBanner').style.display = 'flex';
+      document.getElementById('errorText').textContent = data.lastError;
+    } else {
+      document.getElementById('errorBanner').style.display = 'none';
     }
   } catch(e) {
-    // Worker not responding — stay offline display
+    log('Worker unreachable: ' + e.message, 'err');
+    document.getElementById('wsDot').className = 'ws-dot';
+    document.getElementById('wsLabel').textContent = 'OFFLINE';
   }
 }
 
+// ============================================================
+// UPDATE UI
+// ============================================================
 function updateBotUI(data) {
   if (!data) return;
 
-  // Status pill
-  const pill = document.getElementById('botStatusPill');
-  const pillText = document.getElementById('botStatusText');
-  const isRunning = data.status === 'running' || data.running;
+  const isRunning = data.status === 'running';
+  const isLive    = data.mode === 'live';
+  const pill      = document.getElementById('botStatusPill');
+  const pillText  = document.getElementById('botStatusText');
 
   if (isRunning) {
-    pill.className = 'status-pill ' + (data.mode === 'live' ? 'online' : 'paper');
-    pillText.textContent = data.mode === 'live' ? 'LIVE' : 'PAPER';
+    pill.className = 'status-pill ' + (isLive ? 'online' : 'paper');
+    pillText.textContent = isLive ? 'LIVE' : 'PAPER';
     if (!startTime) startUptime(data.uptimeSeconds || 0);
+    // Hide config panel when running
+    document.getElementById('configPanel').style.display = 'none';
+    document.getElementById('logTick').style.display = 'inline';
   } else {
     pill.className = 'status-pill offline';
-    pillText.textContent = 'OFFLINE';
-  }
-
-  // Live prices from Worker
-  if (data.prices) {
-    if (data.prices.BTC) { prevPrices.BTC = prices.BTC; prices.BTC = data.prices.BTC; updatePriceDisplay('BTC'); }
-    if (data.prices.ETH) { prevPrices.ETH = prices.ETH; prices.ETH = data.prices.ETH; updatePriceDisplay('ETH'); }
-    if (data.prices.SOL) { prevPrices.SOL = prices.SOL; prices.SOL = data.prices.SOL; updatePriceDisplay('SOL'); }
+    pillText.textContent = data.status === 'paused' ? 'PAUSED' : 'OFFLINE';
+    document.getElementById('logTick').style.display = 'none';
   }
 
   // P&L
-  const pnl = parseFloat(data.pnl || 0);
+  const pnl   = parseFloat(data.pnl || 0);
   const pnlEl = document.getElementById('pnlVal');
-  pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
-  pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'green' : 'red');
+  pnlEl.textContent  = (pnl >= 0 ? '+' : '-') + fmtAUD(Math.abs(pnl));
+  pnlEl.className    = 'stat-value ' + (pnl >= 0 ? 'green' : 'red');
   document.getElementById('pnlPct').textContent = (pnl >= 0 ? '+' : '') + (data.pnlPct || 0).toFixed(2) + '%';
 
-  // Trades
-  document.getElementById('tradesVal').textContent = data.tradesToday || 0;
-  document.getElementById('winLoss').textContent = `${data.wins||0}W / ${data.losses||0}L`;
-  document.getElementById('winRate').textContent = (data.winRate || 0).toFixed(0) + '%';
+  // Counters
+  document.getElementById('tradesVal').textContent  = data.tradesToday || 0;
+  document.getElementById('winLoss').textContent    = `${data.wins || 0}W / ${data.losses || 0}L`;
+  document.getElementById('winRate').textContent    = (data.winRate || 0).toFixed(0) + '%';
   document.getElementById('openOrders').textContent = (data.openOrders || 0) + ' OPEN ORDERS';
-  document.getElementById('posCount').textContent = data.openPositions || 0;
+  document.getElementById('posCount').textContent   = data.openPositions || 0;
+  document.getElementById('capitalVal').textContent = fmtAUD(data.capital || 200, 0);
 
-  // Mode
-  const isLive = data.mode === 'live';
-  document.getElementById('modeTag').textContent = isLive ? 'LIVE' : 'PAPER';
-  document.getElementById('modeTag').style.color = isLive ? 'var(--green)' : 'var(--yellow)';
+  // Mode display
+  document.getElementById('modeTag').textContent   = isLive ? 'LIVE' : 'PAPER';
+  document.getElementById('modeTag').style.color   = isLive ? 'var(--green)' : 'var(--yellow)';
   document.getElementById('modeLabel').textContent = isLive ? 'LIVE MODE' : 'PAPER MODE';
-  document.getElementById('paperBanner').style.display = isLive ? 'none' : 'flex';
+  document.getElementById('paperBanner').style.display = isRunning && !isLive ? 'flex' : 'none';
 
   // Trade history
   if (data.trades && data.trades.length > 0) {
@@ -734,57 +735,86 @@ function updateBotUI(data) {
   // Positions
   if (data.positions && data.positions.length > 0) {
     renderPositions(data.positions);
+  } else {
+    document.getElementById('positionsBody').innerHTML =
+      '<div class="empty-state"><div class="icon">◈</div>No open positions</div>';
   }
+
+  // Grid levels
+  renderGrids(data.grids);
 }
 
 function renderTrades(trades) {
-  const body = document.getElementById('tradeHistoryBody');
   document.getElementById('tradeCount').textContent = trades.length;
-  let html = `<table class="trade-table">
-    <thead><tr>
-      <th>TIME</th><th>PAIR</th><th>SIDE / SIZE</th><th>P&L</th><th>STATUS</th>
-    </tr></thead><tbody>`;
+  let html = `<table class="trade-table"><thead><tr>
+    <th>TIME</th><th>PAIR</th><th>SIDE / SIZE</th><th>P&L</th><th>STATUS</th>
+  </tr></thead><tbody>`;
   trades.slice(-20).reverse().forEach(t => {
     const pnl = parseFloat(t.pnl || 0);
     html += `<tr>
-      <td style="color:var(--text-dim)">${t.time||'--'}</td>
-      <td>${t.pair||'--'}</td>
-      <td><span class="badge ${t.side==='buy'?'buy':'sell'}">${t.side?.toUpperCase()||'--'}</span> ${t.size||'--'}</td>
-      <td style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(4)}</td>
-      <td style="color:var(--text-dim)">${t.status||'--'}</td>
+      <td style="color:var(--text-dim)">${t.time || '--'}</td>
+      <td>${t.pair || '--'}</td>
+      <td><span class="badge ${t.side === 'buy' ? 'buy' : 'sell'}">${(t.side || '--').toUpperCase()}</span> ${t.size || '--'}</td>
+      <td style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${pnl >= 0 ? '+' : '-'}${fmtAUD(Math.abs(pnl), 4)}</td>
+      <td style="color:var(--text-dim)">${t.status || '--'}</td>
     </tr>`;
   });
   html += '</tbody></table>';
-  body.innerHTML = html;
+  document.getElementById('tradeHistoryBody').innerHTML = html;
 }
 
 function renderPositions(positions) {
-  const body = document.getElementById('positionsBody');
   document.getElementById('posCount').textContent = positions.length;
   let html = '';
   positions.forEach(p => {
+    const pnl = parseFloat(p.pnl || 0);
     html += `<div style="padding:10px;border:1px solid var(--border2);margin-bottom:6px;font-size:11px;">
       <div style="display:flex;justify-content:space-between;">
         <span style="color:var(--text-bright)">${p.pair}</span>
-        <span style="color:${p.pnl>=0?'var(--green)':'var(--red)'}">${p.pnl>=0?'+':''}$${parseFloat(p.pnl||0).toFixed(4)}</span>
+        <span style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${pnl >= 0 ? '+' : '-'}${fmtAUD(Math.abs(pnl), 4)}</span>
       </div>
-      <div style="color:var(--text-dim);font-size:9px;margin-top:4px;">Size: ${p.size} | Entry: $${p.entry}</div>
+      <div style="color:var(--text-dim);font-size:9px;margin-top:4px;">
+        Size: ${p.size} | Entry: ${fmtAUDPrice(p.entry)} | Current: ${fmtAUDPrice(p.current)}
+      </div>
     </div>`;
   });
-  body.innerHTML = html;
+  document.getElementById('positionsBody').innerHTML = html;
+}
+
+function renderGrids(grids) {
+  if (!grids) return;
+  const pairs = { 'BTC-USDC': 'btcGrid', 'ETH-USDC': 'ethGrid' };
+  for (const [pair, elId] of Object.entries(pairs)) {
+    const el = document.getElementById(elId);
+    if (!el) continue;
+    const grid = grids[pair];
+    if (!grid || !grid.orders || grid.orders.length === 0) continue;
+    const openOrders = grid.orders.filter(o => o.status === 'open');
+    let html = '<div class="grid-levels">';
+    openOrders.sort((a, b) => b.price - a.price).slice(0, 10).forEach(o => {
+      html += `<div class="grid-level">
+        <span class="lnum">${o.type === 'buy' ? '▼' : '▲'}</span>
+        <span class="lprice">$${o.price.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+        <span style="font-size:9px;color:${o.type === 'buy' ? 'var(--green)' : 'var(--red)'};">${o.type.toUpperCase()}</span>
+        <span class="lstatus open">${o.paper ? 'PAPER' : 'LIVE'}</span>
+      </div>`;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
 }
 
 // ============================================================
-// UPTIME TICKER
+// UPTIME
 // ============================================================
 function startUptime(fromSeconds) {
   startTime = fromSeconds ? Date.now() - (fromSeconds * 1000) : Date.now();
   clearInterval(uptimeInterval);
   uptimeInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
-    const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
-    const s = String(elapsed % 60).padStart(2,'0');
+    const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+    const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
     document.getElementById('uptimeDisplay').textContent = `${h}:${m}:${s}`;
   }, 1000);
 }
@@ -794,30 +824,36 @@ function startUptime(fromSeconds) {
 // ============================================================
 function setMode(m) {
   mode = m;
-  document.getElementById('btnPaper').className = 'mode-btn' + (m==='paper'?' active-paper':'');
-  document.getElementById('btnLive').className = 'mode-btn' + (m==='live'?' active-live':'');
+  document.getElementById('btnPaper').className = 'mode-btn' + (m === 'paper' ? ' active-paper' : '');
+  document.getElementById('btnLive').className  = 'mode-btn' + (m === 'live'  ? ' active-live'  : '');
 }
+
+// Init to LIVE by default
+setMode('live');
 
 // ============================================================
 // INIT BOT
 // ============================================================
 async function initBot() {
-  const keyName = document.getElementById('apiKeyName').value.trim();
+  const keyName   = document.getElementById('apiKeyName').value.trim();
   const keySecret = document.getElementById('apiKeySecret').value.trim();
-  const capital = parseFloat(document.getElementById('capital').value);
-  const pair1 = document.getElementById('pair1').value;
-  const pair2 = document.getElementById('pair2').value;
-  const gridLevels = parseInt(document.getElementById('gridLevels').value);
-  const gridSpread = parseFloat(document.getElementById('gridSpread').value);
-  const stopLoss = parseFloat(document.getElementById('stopLoss').value);
-  const takeProfit = parseFloat(document.getElementById('takeProfit').value);
+  const capital   = parseFloat(document.getElementById('capital').value);
+  const pair1     = document.getElementById('pair1').value;
+  const pair2     = document.getElementById('pair2').value;
+  const gridLevels  = parseInt(document.getElementById('gridLevels').value);
+  const gridSpread  = parseFloat(document.getElementById('gridSpread').value);
+  const stopLoss    = parseFloat(document.getElementById('stopLoss').value);
+  const takeProfit  = parseFloat(document.getElementById('takeProfit').value);
 
-  if (!keyName || !keySecret) {
-    log('API key name and secret required', 'err');
+  if (mode === 'live' && (!keyName || !keySecret)) {
+    log('API key name and private key required for LIVE mode', 'err');
     return;
   }
 
-  log('Initializing bot...', 'info');
+  const btn = document.getElementById('initBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ INITIALIZING...';
+  log('Initializing bot in ' + mode.toUpperCase() + ' mode...', 'info');
 
   try {
     const res = await fetch(WORKER_URL + '/init', {
@@ -829,19 +865,27 @@ async function initBot() {
         gridLevels, gridSpread, stopLoss, takeProfit
       })
     });
-    if (res.ok) {
-      log('Bot initialized successfully ✓', 'ok');
-      log(`Mode: ${mode.toUpperCase()} | Capital: $${capital} | Pairs: ${pair1}${pair2!=='none'?' + '+pair2:''}`, 'ok');
+
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      log(`Bot initialized ✓ — Mode: ${data.mode.toUpperCase()} | Orders: ${data.orders}`, 'ok');
+      if (data.lastError) log('Warning: ' + data.lastError, 'warn');
       startUptime(0);
       document.getElementById('configPanel').style.display = 'none';
       pollWorker();
     } else {
-      const err = await res.text();
-      log('Init failed: ' + err, 'err');
+      const errMsg = data.error || JSON.stringify(data);
+      log('Init FAILED: ' + errMsg, 'err');
+      document.getElementById('errorBanner').style.display = 'flex';
+      document.getElementById('errorText').textContent = errMsg;
     }
   } catch(e) {
     log('Cannot reach Worker: ' + e.message, 'err');
   }
+
+  btn.disabled = false;
+  btn.textContent = '▶ INITIALIZE BOT';
 }
 
 function showConfig() {
@@ -850,21 +894,29 @@ function showConfig() {
 }
 
 async function stopBot() {
-  if (!confirm('Stop the bot? It will stop trading immediately.')) return;
-  log('Sending stop command...', 'warn');
+  if (!confirm('Stop the bot and cancel all open orders?')) return;
+  log('Stopping bot...', 'warn');
   try {
-    await fetch(WORKER_URL + '/stop', { method: 'POST' });
-    log('Bot stopped', 'warn');
-    document.getElementById('botStatusPill').className = 'status-pill offline';
-    document.getElementById('botStatusText').textContent = 'OFFLINE';
+    const res = await fetch(WORKER_URL + '/stop', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      log('Bot stopped ✓', 'warn');
+      startTime = null;
+      clearInterval(uptimeInterval);
+      document.getElementById('uptimeDisplay').textContent = '00:00:00';
+      document.getElementById('botStatusPill').className = 'status-pill offline';
+      document.getElementById('botStatusText').textContent = 'OFFLINE';
+      document.getElementById('configPanel').style.display = 'block';
+    }
   } catch(e) { log('Stop failed: ' + e.message, 'err'); }
 }
 
 async function pauseBot() {
-  log('Sending pause command...', 'warn');
+  log('Toggling pause...', 'warn');
   try {
-    await fetch(WORKER_URL + '/pause', { method: 'POST' });
-    log('Bot paused', 'warn');
+    const res = await fetch(WORKER_URL + '/pause', { method: 'POST' });
+    const data = await res.json();
+    log('Bot ' + (data.status || 'paused'), 'warn');
   } catch(e) { log('Pause failed: ' + e.message, 'err'); }
 }
 
@@ -876,31 +928,27 @@ function exportCSV() {
   botState.trades.forEach(t => {
     rows.push(`${t.time},${t.pair},${t.side},${t.size},${t.pnl},${t.status}`);
   });
-  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'lattice-trades.csv';
+  a.download = 'lattice-trades-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
-  log('Trades exported to CSV', 'ok');
+  log('Trades exported ✓', 'ok');
 }
 
 // ============================================================
 // BOOT
 // ============================================================
 window.addEventListener('load', () => {
-  log('Lattice Trading Bot v4.0 — initializing', 'ok');
-  log('Cloudflare Worker: ' + WORKER_URL, 'info');
+  log('Lattice Trading Bot v5.0 — ready', 'ok');
+  log('Worker: ' + WORKER_URL, 'info');
+  log('Fetching AUD exchange rate...', 'info');
 
-  // Start live price feed
-  connectPriceFeed();
-
-  // Poll worker every 1 second
-  pollWorker();
-  workerPollInterval = setInterval(pollWorker, 1000);
-
-  log('Price feed connecting to Coinbase...', 'info');
-  log('Worker polling every second', 'info');
-  log('Ready — initialize bot to begin trading', 'ok');
+  // Fetch AUD rate first, then start polling
+  fetchAUDRate().then(() => {
+    pollWorker();
+    workerPollInterval = setInterval(pollWorker, 1000);
+  });
 });
 </script>
 </body>
