@@ -5,396 +5,248 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lattice Bot — Live Trading</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
-  :root {
-    --bg: #080c0f;
-    --bg2: #0d1318;
-    --bg3: #111920;
-    --border: #1a2530;
-    --green: #00e676;
-    --green2: #00c853;
-    --red: #ff3d57;
-    --blue: #2196f3;
-    --muted: #4a6070;
-    --text: #c8d8e0;
-    --text2: #7a9aaa;
-  }
+:root {
+  --bg:     #080c0f;
+  --bg2:    #0d1318;
+  --bg3:    #111920;
+  --border: #1a2530;
+  --green:  #00e676;
+  --green2: #00c853;
+  --red:    #ff3d57;
+  --blue:   #2196f3;
+  --muted:  #4a6070;
+  --text:   #c8d8e0;
+  --text2:  #7a9aaa;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    min-height: 100vh;
-    padding: 0 0 40px;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
 
-  /* ── Header ── */
-  header {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+/* ── Header ── */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 38px; height: 38px;
+  border: 2px solid var(--green);
+  display: grid; place-items: center;
+  font-size: 16px; color: var(--green);
+}
+.logo-text h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 3px; color: #fff;
+}
+.logo-text p { font-size: 9px; letter-spacing: 2px; color: var(--text2); }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+.header-right { display: flex; align-items: center; gap: 12px; }
 
-  .logo-icon {
-    width: 36px;
-    height: 36px;
-    border: 2px solid var(--green);
-    display: grid;
-    place-items: center;
-    font-size: 16px;
-  }
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border: 1px solid var(--border);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: 1px;
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status-dot.live { background: var(--green); animation: pulse 1.5s infinite; }
+.status-dot.err  { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  .logo-text h1 {
-    font-family: 'Space Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #fff;
-  }
+/* ── Ticker Bar ── */
+.ticker-bar {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex; gap: 32px;
+  overflow-x: auto; white-space: nowrap;
+}
+.t-item { display: flex; align-items: center; gap: 10px; }
+.t-sym { font-family:'Space Mono',monospace; font-size:10px; color:var(--text2); letter-spacing:1px; }
+.t-price { font-family:'Space Mono',monospace; font-size:14px; font-weight:700; color:#fff; }
+.t-chg { font-family:'Space Mono',monospace; font-size:11px; }
+.up { color: var(--green); } .down { color: var(--red); }
 
-  .logo-text p {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text2);
-  }
+/* ── Main ── */
+.main { padding: 20px 24px; display: grid; gap: 16px; }
 
-  .status-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
-  }
+/* ── Stat Row ── */
+.stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+@media(max-width:700px) { .stat-row { grid-template-columns: repeat(2,1fr); } }
 
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 18px;
+}
+.stat-label { font-size:9px; letter-spacing:2px; color:var(--text2); margin-bottom:8px; }
+.stat-value { font-family:'Space Mono',monospace; font-size:22px; font-weight:700; color:#fff; }
+.stat-value.green { color: var(--green); }
+.stat-value.red   { color: var(--red); }
+.stat-sub { font-size:11px; color:var(--text2); margin-top:4px; }
 
-  .status-dot.active { background: var(--green); animation: pulse 2s infinite; }
-  .status-dot.error  { background: var(--red); }
+/* ── Three-col layout ── */
+.three-col { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; }
+@media(max-width:900px) { .three-col { grid-template-columns: 1fr 1fr; } }
+@media(max-width:600px) { .three-col { grid-template-columns: 1fr; } }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
+/* ── Two-col layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:700px) { .two-col { grid-template-columns: 1fr; } }
 
-  /* ── Ticker Bar ── */
-  .ticker-bar {
-    background: var(--bg3);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 24px;
-    display: flex;
-    gap: 32px;
-    overflow-x: auto;
-  }
+/* ── Panel ── */
+.panel { background: var(--bg2); border: 1px solid var(--border); }
+.panel-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--text2); }
+.panel-badge {
+  font-family:'Space Mono',monospace; font-size:9px;
+  padding: 2px 8px; background: var(--bg3);
+  border: 1px solid var(--border); color: var(--text2);
+}
+.panel-badge.green { color:var(--green); border-color:rgba(0,230,118,.3); }
+.panel-badge.red   { color:var(--red); border-color:rgba(255,61,87,.3); }
+.panel-body { padding: 16px; }
 
-  .ticker-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    white-space: nowrap;
-  }
+/* ── Uptime Block ── */
+.uptime-block {
+  display: flex; align-items: center; gap: 20px; padding: 16px;
+}
+.uptime-digits {
+  font-family:'Space Mono',monospace;
+  font-size: 32px; font-weight:700;
+  color: var(--green); letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(0,230,118,.3);
+}
+.uptime-meta { display: flex; flex-direction: column; gap: 5px; }
+.meta-row { font-size:10px; color:var(--text2); }
+.meta-row span { color:#fff; font-family:'Space Mono',monospace; }
 
-  .ticker-symbol {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--text2);
-    letter-spacing: 1px;
-  }
+/* ── Balance Bars ── */
+.bal-item { margin-bottom: 14px; }
+.bal-row { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+.bal-sym { font-family:'Space Mono',monospace; color:var(--text2); letter-spacing:1px; }
+.bal-val { font-family:'Space Mono',monospace; color:#fff; font-weight:700; }
+.bar-track { height:3px; background:var(--border); width:100%; border-radius:2px; }
+.bar-fill  { height:100%; background:var(--green); border-radius:2px; transition:width .6s ease; }
 
-  .ticker-price {
-    font-family: 'Space Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    color: #fff;
-  }
+/* ── Orders Table ── */
+.orders-table { width:100%; font-size:11px; border-collapse:collapse; }
+.orders-table th {
+  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px;
+  color:var(--text2); padding:6px 8px; text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.orders-table td {
+  padding: 7px 8px; border-bottom:1px solid rgba(26,37,48,.6);
+  font-family:'Space Mono',monospace;
+}
+.orders-table tr:last-child td { border:none; }
+.orders-table tr.buy-row td  { color:var(--green); }
+.orders-table tr.sell-row td { color:var(--red); }
+.orders-table .empty td { color:var(--muted); font-size:10px; }
 
-  .ticker-change {
-    font-size: 11px;
-    font-family: 'Space Mono', monospace;
-  }
+/* ── Grid Visual ── */
+.grid-vis { padding: 16px; display:flex; flex-direction:column; gap:6px; }
+.gl { display:flex; align-items:center; gap:8px; font-size:10px; font-family:'Space Mono',monospace; }
+.gl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.gl-line { flex:1; height:1px; }
+.gl.sell .gl-dot { background:rgba(255,61,87,.5); border:1px solid var(--red); }
+.gl.sell .gl-line { background:rgba(255,61,87,.25); }
+.gl.sell .gl-label { color:var(--red); min-width:100px; text-align:right; }
+.gl.mid .gl-dot  { background:var(--green); box-shadow:0 0 8px var(--green); }
+.gl.mid .gl-line { background:var(--green); }
+.gl.mid .gl-label { color:var(--green); min-width:100px; text-align:right; }
+.gl.buy .gl-dot  { background:rgba(0,230,118,.4); border:1px solid var(--green); }
+.gl.buy .gl-line { background:rgba(0,230,118,.2); }
+.gl.buy .gl-label { color:var(--green); min-width:100px; text-align:right; }
 
-  .up { color: var(--green); }
-  .down { color: var(--red); }
+/* ── Log Feed ── */
+.log-feed {
+  max-height: 320px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:4px;
+  padding: 8px;
+}
+.log-entry { display:flex; gap:8px; font-size:10px; padding:5px 7px; background:var(--bg3); }
+.log-entry.buy  { border-left:2px solid var(--green); }
+.log-entry.sell { border-left:2px solid var(--red); }
+.log-entry.info { border-left:2px solid var(--blue); }
+.log-entry.err  { border-left:2px solid var(--red); opacity:.75; }
+.log-time { font-family:'Space Mono',monospace; color:var(--muted); white-space:nowrap; font-size:9px; padding-top:1px; }
+.log-msg  { color:var(--text); flex:1; line-height:1.5; }
 
-  /* ── Main Grid ── */
-  .main {
-    padding: 20px 24px;
-    display: grid;
-    gap: 16px;
-  }
+/* ── Footer ── */
+footer {
+  padding: 14px 24px; border-top: 1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:10px; color:var(--muted); font-family:'Space Mono',monospace;
+  margin-top: 8px;
+}
 
-  /* ── Stat Cards ── */
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-
-  @media (max-width: 700px) {
-    .stat-row { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  .stat-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    padding: 16px;
-  }
-
-  .stat-label {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
-
-  .stat-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .stat-value.green { color: var(--green); }
-  .stat-value.red   { color: var(--red); }
-
-  .stat-sub {
-    font-size: 11px;
-    color: var(--text2);
-    margin-top: 4px;
-  }
-
-  /* ── Two-col layout ── */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  @media (max-width: 700px) {
-    .two-col { grid-template-columns: 1fr; }
-  }
-
-  /* ── Panel ── */
-  .panel {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-  }
-
-  .panel-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .panel-title {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--text2);
-  }
-
-  .panel-badge {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    padding: 2px 8px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    color: var(--green);
-  }
-
-  .panel-body {
-    padding: 16px;
-  }
-
-  /* ── Balance Bars ── */
-  .balance-item {
-    margin-bottom: 14px;
-  }
-
-  .balance-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    font-size: 12px;
-  }
-
-  .balance-sym {
-    font-family: 'Space Mono', monospace;
-    color: var(--text2);
-    letter-spacing: 1px;
-  }
-
-  .balance-val {
-    font-family: 'Space Mono', monospace;
-    color: #fff;
-    font-weight: 700;
-  }
-
-  .bar-track {
-    height: 3px;
-    background: var(--border);
-    width: 100%;
-  }
-
-  .bar-fill {
-    height: 100%;
-    background: var(--green);
-    transition: width 0.6s ease;
-  }
-
-  /* ── Log Feed ── */
-  .log-feed {
-    max-height: 260px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .log-entry {
-    display: flex;
-    gap: 10px;
-    font-size: 11px;
-    padding: 6px 8px;
-    background: var(--bg3);
-    border-left: 2px solid var(--border);
-  }
-
-  .log-entry.buy  { border-left-color: var(--green); }
-  .log-entry.sell { border-left-color: var(--red); }
-  .log-entry.info { border-left-color: var(--blue); }
-
-  .log-time {
-    font-family: 'Space Mono', monospace;
-    color: var(--muted);
-    white-space: nowrap;
-    font-size: 10px;
-  }
-
-  .log-msg { color: var(--text); flex: 1; }
-
-  /* ── Grid Levels Visual ── */
-  .grid-visual {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .grid-level {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 11px;
-    font-family: 'Space Mono', monospace;
-  }
-
-  .grid-line {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-    position: relative;
-  }
-
-  .grid-line.current { background: var(--green); }
-  .grid-line.buy-level { background: rgba(0,230,118,0.3); }
-  .grid-line.sell-level { background: rgba(255,61,87,0.3); }
-
-  .grid-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .grid-dot.current { background: var(--green); }
-  .grid-dot.buy     { background: rgba(0,230,118,0.5); border: 1px solid var(--green); }
-  .grid-dot.sell    { background: rgba(255,61,87,0.5); border: 1px solid var(--red); }
-
-  /* ── Footer ── */
-  .footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-  }
-
-  .last-update { color: var(--text2); }
-
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 </style>
 </head>
 <body>
 
-<!-- Header -->
+<!-- ── Header ── -->
 <header>
   <div class="logo">
     <div class="logo-icon">◈</div>
     <div class="logo-text">
       <h1>LATTICE BOT</h1>
-      <p>AUTONOMOUS TRADING SYSTEM</p>
+      <p>AUTONOMOUS TRADING SYSTEM — CRYPTO.COM EXCHANGE</p>
     </div>
   </div>
-  <div class="status-pill">
-    <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">CONNECTING</span>
+  <div class="header-right">
+    <div class="status-pill">
+      <div class="status-dot" id="sDot"></div>
+      <span id="sTxt">CONNECTING</span>
+    </div>
   </div>
 </header>
 
-<!-- Ticker -->
+<!-- ── Ticker ── -->
 <div class="ticker-bar">
-  <div class="ticker-item">
-    <span class="ticker-symbol">BTC/USDT</span>
-    <span class="ticker-price" id="btcPrice">—</span>
-    <span class="ticker-change" id="btcChange">—</span>
-  </div>
-  <div class="ticker-item">
-    <span class="ticker-symbol">ETH/USDT</span>
-    <span class="ticker-price" id="ethPrice">—</span>
-    <span class="ticker-change" id="ethChange">—</span>
-  </div>
-  <div class="ticker-item">
-    <span class="ticker-symbol">LAST RUN</span>
-    <span class="ticker-price" id="lastRun" style="font-size:12px">—</span>
-  </div>
+  <div class="t-item"><span class="t-sym">BTC/USDT</span><span class="t-price" id="btcP">—</span><span class="t-chg" id="btcC"></span></div>
+  <div class="t-item"><span class="t-sym">ETH/USDT</span><span class="t-price" id="ethP">—</span><span class="t-chg" id="ethC"></span></div>
+  <div class="t-item"><span class="t-sym">PORTFOLIO</span><span class="t-price" id="portVal">—</span></div>
+  <div class="t-item"><span class="t-sym">OPEN ORDERS</span><span class="t-price" id="openCount">—</span></div>
+  <div class="t-item"><span class="t-sym">LAST RUN</span><span class="t-price" id="lastRun" style="font-size:11px">—</span></div>
 </div>
 
-<!-- Main -->
+<!-- ── Main ── -->
 <div class="main">
 
   <!-- Stat Cards -->
   <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL P&L</div>
+      <div class="stat-value" id="pnl">$0.00</div>
+      <div class="stat-sub" id="pnlPct">+0.00% since start</div>
+    </div>
     <div class="stat-card">
       <div class="stat-label">USDT BALANCE</div>
       <div class="stat-value green" id="usdtBal">—</div>
@@ -402,230 +254,280 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">TOTAL ORDERS</div>
-      <div class="stat-value" id="totalOrders">—</div>
-      <div class="stat-sub">Since bot started</div>
+      <div class="stat-value" id="totalOrders">0</div>
+      <div class="stat-sub" id="filledSub">0 filled</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">ETH BALANCE</div>
-      <div class="stat-value" id="ethBal">—</div>
-      <div class="stat-sub">In account</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">BTC BALANCE</div>
-      <div class="stat-value" id="btcBal">—</div>
-      <div class="stat-sub">In account</div>
+      <div class="stat-label">WIN RATE</div>
+      <div class="stat-value" id="winRate">0%</div>
+      <div class="stat-sub">Last 24 hours</div>
     </div>
   </div>
 
-  <!-- Two col -->
-  <div class="two-col">
+  <!-- Row 2: Uptime + Portfolio + Grid -->
+  <div class="three-col">
 
-    <!-- Balance -->
+    <!-- Uptime / Status -->
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">// PORTFOLIO</span>
-        <span class="panel-badge" id="botStatus">ACTIVE</span>
+        <span class="panel-title">// BOT STATUS</span>
+        <span class="panel-badge green" id="botMode">ACTIVE</span>
+      </div>
+      <div class="uptime-block">
+        <div class="uptime-digits" id="uptimeNum">00:00:00</div>
+        <div class="uptime-meta">
+          <div class="meta-row">ENGINE <span>CLOUDFLARE</span></div>
+          <div class="meta-row">STRATEGY <span>GRID</span></div>
+          <div class="meta-row">PAIRS <span>ETH/USDT</span></div>
+          <div class="meta-row">SPREAD <span>0.2%/LVL</span></div>
+        </div>
+      </div>
+      <div class="panel-header" style="border-top:1px solid var(--border);">
+        <span class="panel-title">// PORTFOLIO BREAKDOWN</span>
       </div>
       <div class="panel-body">
-        <div class="balance-item">
-          <div class="balance-row">
-            <span class="balance-sym">USDT</span>
-            <span class="balance-val" id="usdtBarVal">$0.00</span>
-          </div>
+        <div class="bal-item">
+          <div class="bal-row"><span class="bal-sym">USDT</span><span class="bal-val" id="usdtBarVal">$0.00</span></div>
           <div class="bar-track"><div class="bar-fill" id="usdtBar" style="width:0%"></div></div>
         </div>
-        <div class="balance-item">
-          <div class="balance-row">
-            <span class="balance-sym">ETH</span>
-            <span class="balance-val" id="ethBarVal">0.000000</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="ethBar" style="width:0%;background:#2196f3"></div></div>
+        <div class="bal-item">
+          <div class="bal-row"><span class="bal-sym">ETH</span><span class="bal-val" id="ethBarVal">0.000000</span></div>
+          <div class="bar-track"><div class="bar-fill" id="ethBar" style="width:0%;background:var(--blue)"></div></div>
         </div>
-        <div class="balance-item">
-          <div class="balance-row">
-            <span class="balance-sym">BTC</span>
-            <span class="balance-val" id="btcBarVal">0.00000000</span>
-          </div>
+        <div class="bal-item" style="margin-bottom:0">
+          <div class="bal-row"><span class="bal-sym">BTC</span><span class="bal-val" id="btcBarVal">0.00000000</span></div>
           <div class="bar-track"><div class="bar-fill" id="btcBar" style="width:0%;background:#ff9800"></div></div>
         </div>
       </div>
+    </div>
 
-      <!-- Grid Visual -->
-      <div class="panel-header" style="margin-top:0">
-        <span class="panel-title">// ETH GRID LEVELS</span>
+    <!-- Open Orders -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">// OPEN ORDERS</span>
+        <span class="panel-badge green" id="openBadge">0 ACTIVE</span>
       </div>
-      <div class="grid-visual" id="gridVisual">
-        <div class="grid-level">
-          <div class="grid-dot sell"></div>
-          <div class="grid-line sell-level"></div>
-          <span style="color:var(--red);font-size:10px" id="sell2">SELL L2</span>
-        </div>
-        <div class="grid-level">
-          <div class="grid-dot sell"></div>
-          <div class="grid-line sell-level"></div>
-          <span style="color:var(--red);font-size:10px" id="sell1">SELL L1</span>
-        </div>
-        <div class="grid-level">
-          <div class="grid-dot current"></div>
-          <div class="grid-line current"></div>
-          <span style="color:var(--green);font-size:10px" id="midPrice">MID</span>
-        </div>
-        <div class="grid-level">
-          <div class="grid-dot buy"></div>
-          <div class="grid-line buy-level"></div>
-          <span style="color:var(--green);font-size:10px" id="buy1">BUY L1</span>
-        </div>
-        <div class="grid-level">
-          <div class="grid-dot buy"></div>
-          <div class="grid-line buy-level"></div>
-          <span style="color:var(--green);font-size:10px" id="buy2">BUY L2</span>
-        </div>
+      <div style="padding:0">
+        <table class="orders-table">
+          <thead><tr><th>SIDE</th><th>PRICE</th><th>QTY</th><th>FILLED</th></tr></thead>
+          <tbody id="ordersBody">
+            <tr class="empty"><td colspan="4" style="padding:14px 8px">No open orders yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel-header" style="border-top:1px solid var(--border);margin-top:4px;">
+        <span class="panel-title">// RECENT FILLS</span>
+        <span class="panel-badge green" id="fillsBadge">0 TRADES</span>
+      </div>
+      <div style="padding:0">
+        <table class="orders-table">
+          <thead><tr><th>SIDE</th><th>PRICE</th><th>QTY</th></tr></thead>
+          <tbody id="fillsBody">
+            <tr class="empty"><td colspan="3" style="padding:14px 8px">No fills yet</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Log Feed -->
+    <!-- ETH Grid Visual -->
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">// LIVE LOG</span>
-        <span class="panel-badge" id="logCount">0 ENTRIES</span>
+        <span class="panel-title">// ETH/USDT GRID</span>
+        <span class="panel-badge green">0.2% SPREAD</span>
       </div>
-      <div class="panel-body" style="padding:8px">
-        <div class="log-feed" id="logFeed">
-          <div class="log-entry info">
-            <span class="log-time">--:--:--</span>
-            <span class="log-msg">Connecting to Lattice Bot...</span>
-          </div>
-        </div>
+      <div class="grid-vis">
+        <div class="gl sell"><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="s3">SELL L3</span></div>
+        <div class="gl sell"><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="s2">SELL L2</span></div>
+        <div class="gl sell"><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="s1">SELL L1</span></div>
+        <div class="gl mid" ><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="mid">MID PRICE</span></div>
+        <div class="gl buy" ><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="b1">BUY L1</span></div>
+        <div class="gl buy" ><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="b2">BUY L2</span></div>
+        <div class="gl buy" ><div class="gl-dot"></div><div class="gl-line"></div><span class="gl-label" id="b3">BUY L3</span></div>
       </div>
     </div>
 
   </div>
+
+  <!-- Row 3: Log -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">// LIVE ACTIVITY LOG</span>
+      <span class="panel-badge" id="logBadge">0 ENTRIES</span>
+    </div>
+    <div class="log-feed" id="logFeed">
+      <div class="log-entry info">
+        <span class="log-time">--:--:--</span>
+        <span class="log-msg">Connecting to Lattice Bot — Crypto.com Exchange...</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Footer -->
-<div class="footer">
-  <span>LATTICE COLLECTIVE © 2026 — CLOUDFLARE WORKERS</span>
-  <span class="last-update">UPDATED <span id="updateTime">—</span></span>
-</div>
+<!-- ── Footer ── -->
+<footer>
+  <span>LATTICE COLLECTIVE © 2026 — CLOUDFLARE WORKERS 24/7</span>
+  <span>UPDATED <span id="updTime">—</span></span>
+</footer>
 
 <script>
-const WORKER_URL = 'https://lattice-bot.latticecollective-io.workers.dev';
+const WORKER = 'https://lattice-bot.latticecollective-io.workers.dev';
 const SPREAD = 0.002;
+let prevBtc = 0, prevEth = 0, startTime = Date.now();
 
-let prevBtc = 0, prevEth = 0;
+// ── Uptime counter (every second) ──
+setInterval(() => {
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  const h = String(Math.floor(s / 3600)).padStart(2,'0');
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+  const sc = String(s % 60).padStart(2,'0');
+  document.getElementById('uptimeNum').textContent = `${h}:${m}:${sc}`;
+}, 1000);
 
-async function fetchStatus() {
+// ── Poll Worker every 1 second ──
+async function poll() {
   try {
-    const res = await fetch(`${WORKER_URL}/status`);
-    const data = await res.json();
-    updateDashboard(data);
+    const res = await fetch(`${WORKER}/status`);
+    const d   = await res.json();
+    render(d);
   } catch(e) {
     setOffline();
   }
 }
 
-function updateDashboard(data) {
-  const stats = data.stats || {};
-  const logs  = data.logs  || [];
+function render(d) {
+  const s = d.stats || {}, logs = d.logs || [];
 
-  // Status
-  const dot  = document.getElementById('statusDot');
-  const stxt = document.getElementById('statusText');
-  if (stats.status === 'active') {
-    dot.className = 'status-dot active';
-    stxt.textContent = 'LIVE';
-  } else if (stats.status === 'error' || stats.status === 'auth_error') {
-    dot.className = 'status-dot error';
-    stxt.textContent = 'ERROR';
-  } else {
-    dot.className = 'status-dot';
-    stxt.textContent = stats.status ? stats.status.toUpperCase() : 'CONNECTING';
-  }
-
-  document.getElementById('botStatus').textContent = (stats.status || 'unknown').toUpperCase();
+  // Status pill
+  const dot = document.getElementById('sDot');
+  const stxt = document.getElementById('sTxt');
+  if (s.status === 'active')      { dot.className='status-dot live'; stxt.textContent='LIVE'; }
+  else if (s.status === 'error' || s.status === 'auth_error') { dot.className='status-dot err'; stxt.textContent='ERROR'; }
+  else { dot.className='status-dot'; stxt.textContent=(s.status||'CONNECTING').toUpperCase(); }
+  const bm = document.getElementById('botMode');
+  bm.textContent = (s.status||'unknown').toUpperCase();
+  bm.className = 'panel-badge ' + (s.status==='active'?'green':'red');
 
   // Prices
-  const btc = stats.btc_price || 0;
-  const eth = stats.eth_price || 0;
-
+  const btc = s.btc_price || 0, eth = s.eth_price || 0;
   if (btc) {
-    document.getElementById('btcPrice').textContent = '$' + btc.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
-    const btcChg = document.getElementById('btcChange');
-    btcChg.textContent = prevBtc ? ((btc - prevBtc) >= 0 ? '▲' : '▼') + ' ' + Math.abs(btc - prevBtc).toFixed(2) : '';
-    btcChg.className = 'ticker-change ' + ((btc >= prevBtc) ? 'up' : 'down');
+    document.getElementById('btcP').textContent = '$' + btc.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if (prevBtc) {
+      const c = document.getElementById('btcC');
+      c.textContent = (btc >= prevBtc ? '▲ ' : '▼ ') + Math.abs(btc - prevBtc).toFixed(2);
+      c.className = 't-chg ' + (btc >= prevBtc ? 'up' : 'down');
+    }
     prevBtc = btc;
   }
-
   if (eth) {
-    document.getElementById('ethPrice').textContent = '$' + eth.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
-    const ethChg = document.getElementById('ethChange');
-    ethChg.textContent = prevEth ? ((eth - prevEth) >= 0 ? '▲' : '▼') + ' ' + Math.abs(eth - prevEth).toFixed(2) : '';
-    ethChg.className = 'ticker-change ' + ((eth >= prevEth) ? 'up' : 'down');
+    document.getElementById('ethP').textContent = '$' + eth.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if (prevEth) {
+      const c = document.getElementById('ethC');
+      c.textContent = (eth >= prevEth ? '▲ ' : '▼ ') + Math.abs(eth - prevEth).toFixed(2);
+      c.className = 't-chg ' + (eth >= prevEth ? 'up' : 'down');
+    }
     prevEth = eth;
   }
 
+  // Portfolio value
+  const pv = s.portfolioValue || 0;
+  document.getElementById('portVal').textContent = pv ? '$' + pv.toFixed(2) : '—';
+
   // Last run
-  if (stats.lastRun) {
-    const d = new Date(stats.lastRun);
-    document.getElementById('lastRun').textContent = d.toLocaleTimeString();
-  }
+  if (s.lastRun) document.getElementById('lastRun').textContent = new Date(s.lastRun).toLocaleTimeString();
 
-  // Balances
-  const usdt = stats.balance_usdt || 0;
-  const ethB = stats.balance_eth  || 0;
-  const btcB = stats.balance_btc  || 0;
+  // P&L
+  const pnl = s.pnl || 0, pct = s.pnlPct || 0;
+  const pnlEl = document.getElementById('pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+  pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'green' : 'red');
+  const pctEl = document.getElementById('pnlPct');
+  pctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(3) + '% since start';
+  pctEl.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
 
-  document.getElementById('usdtBal').textContent = '$' + usdt.toFixed(2);
-  document.getElementById('ethBal').textContent  = ethB.toFixed(6);
-  document.getElementById('btcBal').textContent  = btcB.toFixed(8);
-  document.getElementById('totalOrders').textContent = stats.totalOrders || 0;
+  // Stats
+  const usdt = s.balance_usdt || 0;
+  const ethB = s.balance_eth  || 0;
+  const btcB = s.balance_btc  || 0;
+  document.getElementById('usdtBal').textContent    = '$' + usdt.toFixed(2);
+  document.getElementById('totalOrders').textContent = s.totalOrders || 0;
+  document.getElementById('filledSub').textContent   = (s.filledOrders || 0) + ' filled';
+  document.getElementById('winRate').textContent     = (s.winRate || 0) + '%';
 
   // Balance bars
   const total = usdt + (ethB * eth) + (btcB * btc) || 1;
   document.getElementById('usdtBarVal').textContent = '$' + usdt.toFixed(2);
-  document.getElementById('usdtBar').style.width = Math.min(100, (usdt/total)*100) + '%';
-  document.getElementById('ethBarVal').textContent = ethB.toFixed(6);
-  document.getElementById('ethBar').style.width = Math.min(100, ((ethB*eth)/total)*100) + '%';
-  document.getElementById('btcBarVal').textContent = btcB.toFixed(8);
-  document.getElementById('btcBar').style.width = Math.min(100, ((btcB*btc)/total)*100) + '%';
+  document.getElementById('usdtBar').style.width    = Math.min(100, (usdt/total)*100) + '%';
+  document.getElementById('ethBarVal').textContent  = ethB.toFixed(6);
+  document.getElementById('ethBar').style.width     = Math.min(100, ((ethB*eth)/total)*100) + '%';
+  document.getElementById('btcBarVal').textContent  = btcB.toFixed(8);
+  document.getElementById('btcBar').style.width     = Math.min(100, ((btcB*btc)/total)*100) + '%';
+
+  // Open orders count
+  const orders = s.ethOrders || [];
+  document.getElementById('openCount').textContent = orders.length;
+  document.getElementById('openBadge').textContent = orders.length + ' ACTIVE';
+
+  // Open orders table
+  const ob = document.getElementById('ordersBody');
+  ob.innerHTML = orders.length
+    ? orders.map(o => `<tr class="${o.side==='BUY'?'buy-row':'sell-row'}">
+        <td>${o.side}</td>
+        <td>$${o.price.toFixed(2)}</td>
+        <td>${o.qty.toFixed(4)}</td>
+        <td>${o.filled.toFixed(4)}</td>
+      </tr>`).join('')
+    : '<tr class="empty"><td colspan="4" style="padding:14px 8px">No open orders yet</td></tr>';
+
+  // Fills table
+  const fills = s.recentFills || [];
+  document.getElementById('fillsBadge').textContent = (s.filledOrders || 0) + ' TRADES';
+  const fb = document.getElementById('fillsBody');
+  fb.innerHTML = fills.length
+    ? fills.map(f => `<tr class="${f.side==='BUY'?'buy-row':'sell-row'}">
+        <td>${f.side}</td>
+        <td>$${f.price.toFixed(2)}</td>
+        <td>${f.qty.toFixed(4)}</td>
+      </tr>`).join('')
+    : '<tr class="empty"><td colspan="3" style="padding:14px 8px">No fills yet</td></tr>';
 
   // Grid visual
   if (eth > 0) {
-    document.getElementById('midPrice').textContent = '$' + eth.toFixed(2) + ' (NOW)';
-    document.getElementById('buy1').textContent = '$' + (eth*(1-SPREAD)).toFixed(2) + ' BUY L1';
-    document.getElementById('buy2').textContent = '$' + (eth*(1-SPREAD*2)).toFixed(2) + ' BUY L2';
-    document.getElementById('sell1').textContent = '$' + (eth*(1+SPREAD)).toFixed(2) + ' SELL L1';
-    document.getElementById('sell2').textContent = '$' + (eth*(1+SPREAD*2)).toFixed(2) + ' SELL L2';
+    document.getElementById('mid').textContent = '$' + eth.toFixed(2) + ' ← NOW';
+    document.getElementById('b1').textContent  = '$' + (eth*(1-SPREAD*1)).toFixed(2) + ' BUY L1';
+    document.getElementById('b2').textContent  = '$' + (eth*(1-SPREAD*2)).toFixed(2) + ' BUY L2';
+    document.getElementById('b3').textContent  = '$' + (eth*(1-SPREAD*3)).toFixed(2) + ' BUY L3';
+    document.getElementById('s1').textContent  = '$' + (eth*(1+SPREAD*1)).toFixed(2) + ' SELL L1';
+    document.getElementById('s2').textContent  = '$' + (eth*(1+SPREAD*2)).toFixed(2) + ' SELL L2';
+    document.getElementById('s3').textContent  = '$' + (eth*(1+SPREAD*3)).toFixed(2) + ' SELL L3';
   }
 
-  // Logs
-  if (logs.length) {
-    document.getElementById('logCount').textContent = logs.length + ' ENTRIES';
-    const feed = document.getElementById('logFeed');
-    feed.innerHTML = [...logs].reverse().map(l => {
-      const msg = l.msg || '';
-      const type = msg.includes('BUY') ? 'buy' : msg.includes('SELL') ? 'sell' : 'info';
-      const time = l.ts ? new Date(l.ts).toLocaleTimeString() : '--:--:--';
-      const ok = l.data && l.data.ok === false ? ' ❌' : l.data && l.data.ok === true ? ' ✓' : '';
-      return `<div class="log-entry ${type}">
-        <span class="log-time">${time}</span>
-        <span class="log-msg">${msg}${ok}</span>
-      </div>`;
-    }).join('');
-  }
+  // Live log
+  document.getElementById('logBadge').textContent = logs.length + ' ENTRIES';
+  document.getElementById('logFeed').innerHTML = [...logs].reverse().slice(0,50).map(l => {
+    const msg  = l.msg || '';
+    const type = msg.includes('BUY') ? 'buy' : msg.includes('SELL') ? 'sell' : (msg.includes('ERROR')||msg.includes('EXCEPTION')) ? 'err' : 'info';
+    const time = l.ts ? new Date(l.ts).toLocaleTimeString() : '--:--:--';
+    const ok   = l.data && l.data.ok === false ? ' <span style="color:var(--red)">✗</span>' : l.data && l.data.ok === true ? ' <span style="color:var(--green)">✓</span>' : '';
+    const err  = l.data && l.data.msg ? ` <span style="color:var(--muted)">(${l.data.msg})</span>` : '';
+    return `<div class="log-entry ${type}">
+      <span class="log-time">${time}</span>
+      <span class="log-msg">${msg}${ok}${err}</span>
+    </div>`;
+  }).join('');
 
-  // Update time
-  document.getElementById('updateTime').textContent = new Date().toLocaleTimeString();
+  document.getElementById('updTime').textContent = new Date().toLocaleTimeString();
 }
 
 function setOffline() {
-  document.getElementById('statusDot').className = 'status-dot error';
-  document.getElementById('statusText').textContent = 'OFFLINE';
+  document.getElementById('sDot').className  = 'status-dot err';
+  document.getElementById('sTxt').textContent = 'OFFLINE';
 }
 
-// Poll every 5 seconds
-fetchStatus();
-setInterval(fetchStatus, 5000);
+// Start polling every 1 second
+poll();
+setInterval(poll, 1000);
 </script>
 </body>
 </html>
