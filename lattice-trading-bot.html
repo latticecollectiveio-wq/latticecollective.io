@@ -190,11 +190,10 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
   <!-- ETH Price Chart -->
   <div class="chart-wrap">
     <div class="panel-hdr">
-      <span class="ptitle">// ETH/USDT — TRADINGVIEW (BOLLINGER + RSI)</span>
+      <span class="ptitle">// ETH/USDT PRICE HISTORY</span>
       <span class="pbadge g" id="chartPoints">0 POINTS</span>
     </div>
-    <div id="tvContainer" style="height:420px;width:100%;"></div>
-    <canvas id="ethChart" height="140" style="display:none"></canvas>
+    <canvas id="ethChart" height="140"></canvas>
   </div>
 
   <!-- Three col: Status + Orders + Grid -->
@@ -211,7 +210,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
         <div class="umeta">
           <div class="urow">ENGINE <span>CLOUDFLARE</span></div>
           <div class="urow">PAIR <span>ETH/USDT</span></div>
-          <div class="urow">SPREAD <span>0.2%/LVL</span></div>
+          <div class="urow">SPREAD <span>0.8%/LVL</span></div>
           <div class="urow">LEVELS <span>3</span></div>
         </div>
       </div>
@@ -258,7 +257,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     <div class="panel">
       <div class="panel-hdr">
         <span class="ptitle">// ETH GRID LEVELS</span>
-        <span class="pbadge g">0.2% SPREAD</span>
+        <span class="pbadge g">0.8% SPREAD</span>
       </div>
       <div class="gvis">
         <div class="gl sell"><div class="gdot"></div><div class="gline"></div><span class="glbl" id="s3">SELL L3</span></div>
@@ -292,7 +291,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 
 <script>
 const W = 'https://lattice-bot.latticecollective-io.workers.dev';
-const SP = 0.002;
+const SP = 0.008;
 let prevBtc=0, prevEth=0, startT=Date.now();
 let priceHistory=[], failCount=0;
 
@@ -560,55 +559,6 @@ function setOfflineFull(){setStatus('err','OFFLINE');}
 poll();
 setInterval(poll, 1000);
 window.addEventListener('resize', ()=>{ if(priceHistory.length) drawChart(priceHistory); });
-
-// TradingView chart — loaded async and fully isolated; if it fails for any
-// reason (blocked script, network, API change) we fall back to the built-in
-// canvas chart instead of letting it take the rest of the page down.
-function loadTradingViewScript(timeoutMs){
-  return new Promise((resolve)=>{
-    let done=false;
-    const finish=(ok)=>{ if(!done){ done=true; resolve(ok); } };
-    try{
-      const s=document.createElement('script');
-      s.src='https://s3.tradingview.com/tv.js';
-      s.onload=()=>finish(true);
-      s.onerror=()=>finish(false);
-      document.head.appendChild(s);
-      setTimeout(()=>finish(false), timeoutMs);
-    }catch(e){ finish(false); }
-  });
-}
-
-function useFallbackChart(){
-  document.getElementById('tvContainer').style.display='none';
-  document.getElementById('ethChart').style.display='block';
-  if(priceHistory.length) drawChart(priceHistory);
-}
-
-(async function initTradingView(){
-  try{
-    const ok = await loadTradingViewScript(8000);
-    if(!ok || !window.TradingView){ useFallbackChart(); return; }
-    new TradingView.widget({
-      autosize: true,
-      symbol: 'BINANCE:ETHUSDT',
-      interval: '5',
-      timezone: 'Etc/UTC',
-      theme: 'dark',
-      style: '1',
-      locale: 'en',
-      toolbar_bg: '#0d1318',
-      enable_publishing: false,
-      hide_top_toolbar: false,
-      hide_legend: false,
-      studies: ['BB@tv-basicstudies','RSI@tv-basicstudies'],
-      container_id: 'tvContainer'
-    });
-  }catch(e){
-    console.warn('TradingView init failed, using fallback chart:', e);
-    useFallbackChart();
-  }
-})();
 
 </script>
 </body>
