@@ -135,6 +135,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 <div class="ticker">
   <div class="ti"><span class="tsym">BTC/USDT</span><span class="tprice" id="btcP">—</span><span class="tchg" id="btcC"></span></div>
   <div class="ti"><span class="tsym">ETH/USDT</span><span class="tprice" id="ethP">—</span><span class="tchg" id="ethC"></span></div>
+  <div class="ti"><span class="tsym">SOL/USDT</span><span class="tprice" id="solP">—</span><span class="tchg" id="solC"></span></div>
   <div class="ti"><span class="tsym">PORTFOLIO</span><span class="tprice" id="portV">—</span></div>
   <div class="ti"><span class="tsym">OPEN ORDERS</span><span class="tprice" id="openCnt">—</span></div>
   <div class="ti"><span class="tsym">BID/ASK</span><span class="tprice" id="bidAsk" style="font-size:12px">—</span><span class="tchg" id="spreadPct"></span></div>
@@ -209,8 +210,8 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
         <div class="uptime-dig" id="uptimeDig">00:00:00</div>
         <div class="umeta">
           <div class="urow">ENGINE <span>CLOUDFLARE</span></div>
-          <div class="urow">PAIR <span>ETH/USDT</span></div>
-          <div class="urow">SPREAD <span>0.8%/LVL</span></div>
+          <div class="urow">PAIRS <span>BTC/ETH/SOL</span></div>
+          <div class="urow">SPREAD <span>0.4%/LVL</span></div>
           <div class="urow">LEVELS <span>3</span></div>
         </div>
       </div>
@@ -230,34 +231,38 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
           <div class="bal-row"><span class="bsym">BTC</span><span class="bval" id="btcBar2">0.00000000</span></div>
           <div class="btrack"><div class="bfill" id="btcBarFill" style="width:0%;background:#ff9800"></div></div>
         </div>
+        <div class="bal-item">
+          <div class="bal-row"><span class="bsym">SOL</span><span class="bval" id="solBar2">0.000000</span></div>
+          <div class="btrack"><div class="bfill" id="solBarFill" style="width:0%;background:#9945FF"></div></div>
+        </div>
       </div>
     </div>
 
     <!-- Open Orders + Fills -->
     <div class="panel">
       <div class="panel-hdr">
-        <span class="ptitle">// OPEN ORDERS</span>
+        <span class="ptitle">// OPEN ORDERS — ALL PAIRS</span>
         <span class="pbadge g" id="openBadge">0 ACTIVE</span>
       </div>
       <table class="otbl">
-        <thead><tr><th>SIDE</th><th>PRICE</th><th>QTY</th><th>FILLED</th></tr></thead>
-        <tbody id="ordersBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr></tbody>
+        <thead><tr><th>PAIR</th><th>SIDE</th><th>PRICE</th><th>QTY</th><th>FILLED</th></tr></thead>
+        <tbody id="ordersBody"><tr class="empty-row"><td colspan="5" style="padding:12px 9px">No open orders</td></tr></tbody>
       </table>
       <div class="panel-hdr" style="border-top:1px solid var(--border);margin-top:2px">
-        <span class="ptitle">// RECENT FILLS</span>
+        <span class="ptitle">// RECENT FILLS — ALL PAIRS</span>
         <span class="pbadge g" id="fillsBadge">0</span>
       </div>
       <table class="otbl">
-        <thead><tr><th>SIDE</th><th>AVG PRICE</th><th>QTY</th></tr></thead>
-        <tbody id="fillsBody"><tr class="empty-row"><td colspan="3" style="padding:12px 9px">No fills yet</td></tr></tbody>
+        <thead><tr><th>PAIR</th><th>SIDE</th><th>AVG PRICE</th><th>QTY</th></tr></thead>
+        <tbody id="fillsBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No fills yet</td></tr></tbody>
       </table>
     </div>
 
     <!-- Grid Visual -->
     <div class="panel">
       <div class="panel-hdr">
-        <span class="ptitle">// ETH GRID LEVELS</span>
-        <span class="pbadge g">0.8% SPREAD</span>
+        <span class="ptitle">// ETH/USDT GRID LEVELS</span>
+        <span class="pbadge g">0.4% SPREAD</span>
       </div>
       <div class="gvis">
         <div class="gl sell"><div class="gdot"></div><div class="gline"></div><span class="glbl" id="s3">SELL L3</span></div>
@@ -291,8 +296,8 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 
 <script>
 const W = 'https://lattice-bot.latticecollective-io.workers.dev';
-const SP = 0.008;
-let prevBtc=0, prevEth=0, startT=Date.now();
+const SP = 0.004;
+let prevBtc=0, prevEth=0, prevSol=0, startT=Date.now();
 let priceHistory=[], failCount=0;
 
 // Uptime
@@ -425,6 +430,12 @@ function render(d) {
       if(prevEth){const c=document.getElementById('ethC');c.textContent=(eth>=prevEth?'▲ ':'▼ ')+Math.abs(eth-prevEth).toFixed(2);c.className='tchg '+(eth>=prevEth?'up':'down');}
       prevEth=eth;
     }
+    const sol=s.sol_price||0;
+    if(sol){
+      document.getElementById('solP').textContent='$'+sol.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+      if(prevSol){const c=document.getElementById('solC');c.textContent=(sol>=prevSol?'▲ ':'▼ ')+Math.abs(sol-prevSol).toFixed(2);c.className='tchg '+(sol>=prevSol?'up':'down');}
+      prevSol=sol;
+    }
     if(s.lastRun) document.getElementById('lastRun').textContent=new Date(s.lastRun).toLocaleTimeString();
   });
 
@@ -466,7 +477,8 @@ function render(d) {
   safe(()=>{
     // Stats
     const usdt=s.balance_usdt||0, ethB=s.balance_eth||0, btcB=s.balance_btc||0;
-    const eth=s.eth_price||0, btc=s.btc_price||0;
+    const eth=s.eth_price||0, btc=s.btc_price||0, sol=s.sol_price||0;
+    const solB=s.balance_sol||0;
     document.getElementById('usdtBal').textContent='$'+usdt.toFixed(2);
     document.getElementById('totalOrd').textContent=s.totalOrders||0;
     document.getElementById('filledSub').textContent=(s.filledOrders||0)+' filled';
@@ -476,18 +488,20 @@ function render(d) {
     document.getElementById('ethUsdVal').textContent='≈ $'+(ethB*eth).toFixed(2);
 
     // Bars
-    const total=usdt+(ethB*eth)+(btcB*btc)||1;
+    const total=usdt+(ethB*eth)+(btcB*btc)+(solB*sol)||1;
     document.getElementById('usdtBar2').textContent='$'+usdt.toFixed(2);
     document.getElementById('usdtBarFill').style.width=Math.min(100,(usdt/total)*100)+'%';
     document.getElementById('ethBar2').textContent=ethB.toFixed(6);
     document.getElementById('ethBarFill').style.width=Math.min(100,((ethB*eth)/total)*100)+'%';
     document.getElementById('btcBar2').textContent=btcB.toFixed(8);
     document.getElementById('btcBarFill').style.width=Math.min(100,((btcB*btc)/total)*100)+'%';
+    document.getElementById('solBar2').textContent=solB.toFixed(6);
+    document.getElementById('solBarFill').style.width=Math.min(100,((solB*sol)/total)*100)+'%';
   });
 
   safe(()=>{
-    // Open orders
-    const orders=s.ethOrders||[];
+    // Open orders — all pairs combined
+    const orders=s.allOrders||[];
     document.getElementById('openCnt').textContent=orders.length;
     document.getElementById('openBadge').textContent=orders.length+' ACTIVE';
     const ob=document.getElementById('ordersBody');
@@ -496,26 +510,28 @@ function render(d) {
         const p=isNaN(o.price)?'—':'$'+Number(o.price).toFixed(2);
         const q=isNaN(o.qty)?'—':Number(o.qty).toFixed(4);
         const f=isNaN(o.filled)?'—':Number(o.filled).toFixed(4);
-        return `<tr class="${o.side==='BUY'?'br':'sr'}"><td>${o.side||'—'}</td><td>${p}</td><td>${q}</td><td>${f}</td></tr>`;
+        const pair=(o.pair||'—').replace('_USDT','');
+        return `<tr class="${o.side==='BUY'?'br':'sr'}"><td>${pair}</td><td>${o.side||'—'}</td><td>${p}</td><td>${q}</td><td>${f}</td></tr>`;
       }).join('');
     } else {
-      ob.innerHTML='<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr>';
+      ob.innerHTML='<tr class="empty-row"><td colspan="5" style="padding:12px 9px">No open orders</td></tr>';
     }
   });
 
   safe(()=>{
-    // Fills
-    const fills=s.recentFills||[];
+    // Fills — all pairs combined
+    const fills=s.allFills||[];
     document.getElementById('fillsBadge').textContent=fills.length;
     const fb=document.getElementById('fillsBody');
     if(fills.length){
       fb.innerHTML=fills.map(f=>{
         const p=isNaN(f.price)?'—':'$'+Number(f.price).toFixed(2);
         const q=isNaN(f.qty)?'—':Number(f.qty).toFixed(4);
-        return `<tr class="${f.side==='BUY'?'br':'sr'}"><td>${f.side||'—'}</td><td>${p}</td><td>${q}</td></tr>`;
+        const pair=(f.pair||'—').replace('_USDT','');
+        return `<tr class="${f.side==='BUY'?'br':'sr'}"><td>${pair}</td><td>${f.side||'—'}</td><td>${p}</td><td>${q}</td></tr>`;
       }).join('');
     } else {
-      fb.innerHTML='<tr class="empty-row"><td colspan="3" style="padding:12px 9px">No fills yet</td></tr>';
+      fb.innerHTML='<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No fills yet</td></tr>';
     }
   });
 
