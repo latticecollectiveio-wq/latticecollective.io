@@ -147,7 +147,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
   <!-- Stat Cards -->
   <div class="stat-row">
     <div class="sc">
-      <div class="sc-lbl">TOTAL P&L</div>
+      <div class="sc-lbl">TOTAL P&L <span style="font-size:9px;color:var(--text-dim);font-weight:400">(incl. deposits)</span></div>
       <div class="sc-val" id="pnl">$0.00</div>
       <div class="sc-sub" id="pnlPct">+0.000% since start</div>
     </div>
@@ -211,7 +211,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
         <div class="umeta">
           <div class="urow">ENGINE <span>CLOUDFLARE</span></div>
           <div class="urow">PAIRS <span>BTC/ETH/SOL</span></div>
-          <div class="urow">SPREAD <span>0.4%/LVL</span></div>
+          <div class="urow">SPREAD <span>0.25/0.4/0.6%</span></div>
           <div class="urow">LEVELS <span>3</span></div>
         </div>
       </div>
@@ -262,7 +262,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     <div class="panel">
       <div class="panel-hdr">
         <span class="ptitle">// ETH/USDT GRID LEVELS</span>
-        <span class="pbadge g">0.4% SPREAD</span>
+        <span class="pbadge g">0.25-0.6% GRADUATED</span>
       </div>
       <div class="gvis">
         <div class="gl sell"><div class="gdot"></div><div class="gline"></div><span class="glbl" id="s3">SELL L3</span></div>
@@ -296,7 +296,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 
 <script>
 const W = 'https://lattice-bot.latticecollective-io.workers.dev';
-const SP = 0.004;
+const LEVEL_SP = [0.0025, 0.004, 0.006]; // matches worker's graduated L1/L2/L3 spacing
 let prevBtc=0, prevEth=0, prevSol=0, startT=Date.now();
 let priceHistory=[], failCount=0;
 
@@ -541,8 +541,8 @@ function render(d) {
     if(eth>0){
       document.getElementById('mid').textContent='$'+eth.toFixed(2)+' ← NOW';
       [1,2,3].forEach(i=>{
-        document.getElementById('b'+i).textContent='$'+(eth*(1-SP*i)).toFixed(2)+' BUY L'+i;
-        document.getElementById('s'+i).textContent='$'+(eth*(1+SP*i)).toFixed(2)+' SELL L'+i;
+        document.getElementById('b'+i).textContent='$'+(eth*(1-LEVEL_SP[i-1])).toFixed(2)+' BUY L'+i;
+        document.getElementById('s'+i).textContent='$'+(eth*(1+LEVEL_SP[i-1])).toFixed(2)+' SELL L'+i;
       });
     }
   });
