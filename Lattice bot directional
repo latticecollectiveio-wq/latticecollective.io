@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lattice Directional Bot — PAPER TRADING</title>
+<style>
+  :root{
+    --bg:#0a0e12; --panel:#0d1318; --border:#1c252c; --text:#e8edf2; --text-dim:#5a6b78;
+    --green:#00e676; --red:#ff5252; --amber:#ffb300; --purple:#9945FF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; padding:0;}
+  .header{display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--border);}
+  .logo-box{width:48px; height:48px; border:2px solid var(--purple); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px;}
+  .title-block{display:flex; align-items:center; gap:14px;}
+  h1{font-size:18px; letter-spacing:2px;}
+  .sub{font-size:11px; color:var(--text-dim); letter-spacing:1px;}
+  .badge{padding:6px 14px; border-radius:20px; font-size:12px; border:1px solid var(--amber); color:var(--amber);}
+  .paper-banner{background:rgba(255,179,0,0.08); border:1px solid var(--amber); color:var(--amber); padding:10px 24px; font-size:12px; text-align:center; letter-spacing:1px;}
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); margin:1px 0;}
+  .sc{background:var(--panel); padding:18px;}
+  .sc-lbl{font-size:10px; color:var(--text-dim); letter-spacing:1px; margin-bottom:8px;}
+  .sc-val{font-size:24px; font-weight:700;}
+  .sc-sub{font-size:11px; color:var(--text-dim); margin-top:4px;}
+  .up{color:var(--green)} .down{color:var(--red)}
+  .panel{background:var(--panel); border:1px solid var(--border); margin:16px 24px;}
+  .panel-hdr{display:flex; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); font-size:11px; letter-spacing:1px; color:var(--text-dim);}
+  .pbadge{border:1px solid var(--green); color:var(--green); padding:3px 10px; border-radius:4px; font-size:10px;}
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th{text-align:left; padding:8px 16px; color:var(--text-dim); font-size:10px; letter-spacing:1px; border-bottom:1px solid var(--border);}
+  td{padding:8px 16px; border-bottom:1px solid rgba(255,255,255,0.03);}
+  .empty-row td{color:var(--text-dim); text-align:center;}
+  .pos-row{padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.03); display:flex; justify-content:space-between; font-size:12px;}
+  .log-row{padding:6px 16px; border-bottom:1px solid rgba(255,255,255,0.03); font-size:11px; display:flex; gap:10px;}
+  .log-ts{color:var(--text-dim); white-space:nowrap;}
+  @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title-block">
+    <div class="logo-box">◈</div>
+    <div>
+      <h1>LATTICE DIRECTIONAL BOT</h1>
+      <div class="sub">TREND + MOMENTUM — BTC/ETH/SOL — PAPER TRADING</div>
+    </div>
+  </div>
+  <span class="badge" id="statusBadge">● PAPER</span>
+</div>
+
+<div class="paper-banner">⚠ SIMULATED CAPITAL — REAL MARKET DATA, NO REAL ORDERS ARE EVER PLACED — STARTING BALANCE $500 (PAPER)</div>
+
+<div class="grid">
+  <div class="sc">
+    <div class="sc-lbl">PAPER EQUITY</div>
+    <div class="sc-val" id="equity">—</div>
+    <div class="sc-sub" id="equityPct">— since start</div>
+  </div>
+  <div class="sc">
+    <div class="sc-lbl">REALIZED P&L</div>
+    <div class="sc-val" id="realizedPnl">—</div>
+    <div class="sc-sub" id="cashLeft">— cash available</div>
+  </div>
+  <div class="sc">
+    <div class="sc-lbl">WIN RATE</div>
+    <div class="sc-val" id="winRate">—</div>
+    <div class="sc-sub" id="winSub">— wins / — trades</div>
+  </div>
+  <div class="sc">
+    <div class="sc-lbl">OPEN POSITIONS</div>
+    <div class="sc-val" id="openPosCount">—</div>
+    <div class="sc-sub">of 3 pairs</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// OPEN POSITIONS</span>
+    <span class="pbadge" id="posBadge">0</span>
+  </div>
+  <div id="posBody"><div class="pos-row"><span style="color:var(--text-dim)">No open positions — flat, waiting for a trend+momentum signal</span></div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// CLOSED TRADES</span>
+    <span class="pbadge" id="tradesBadge">0</span>
+  </div>
+  <table>
+    <thead><tr><th>PAIR</th><th>ENTRY</th><th>EXIT</th><th>P&L</th><th>REASON</th></tr></thead>
+    <tbody id="tradesBody"><tr class="empty-row"><td colspan="5" style="padding:14px">No closed trades yet</td></tr></tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// STRATEGY LOG</span>
+    <span class="pbadge" id="logBadge">0</span>
+  </div>
+  <div id="logBody" style="max-height:300px; overflow-y:auto;"></div>
+</div>
+
+<script>
+const WORKER = 'https://lattice-bot.latticecollective-io.workers.dev';
+
+function safe(fn){ try{ fn(); }catch(e){ console.warn(e); } }
+
+async function poll(){
+  try{
+    const res = await fetch(WORKER + '/paper-status');
+    const data = await res.json();
+    render(data);
+  }catch(e){ console.warn('paper-status fetch failed', e); }
+}
+
+function render(data){
+  const p = data.paper || {};
+  const logs = data.logs || [];
+
+  safe(()=>{
+    const eq = p.equity || 0;
+    document.getElementById('equity').textContent = '$'+eq.toFixed(2);
+    const pct = p.pnlPct || 0;
+    const el = document.getElementById('equityPct');
+    el.textContent = (pct>=0?'+':'')+pct.toFixed(2)+'% since start';
+    el.className = 'sc-sub ' + (pct>=0?'up':'down');
+  });
+
+  safe(()=>{
+    const rp = p.realizedPnl || 0;
+    const el = document.getElementById('realizedPnl');
+    el.textContent = (rp>=0?'+':'')+'$'+rp.toFixed(2);
+    el.className = 'sc-val ' + (rp>=0?'up':'down');
+    document.getElementById('cashLeft').textContent = '$'+(p.cash||0).toFixed(2)+' cash available';
+  });
+
+  safe(()=>{
+    document.getElementById('winRate').textContent = (p.winRate||0)+'%';
+    document.getElementById('winSub').textContent = (p.winCount||0)+' wins / '+(p.tradeCount||0)+' trades';
+  });
+
+  safe(()=>{
+    const positions = p.positions || {};
+    const open = Object.entries(positions).filter(([k,v])=>v);
+    document.getElementById('openPosCount').textContent = open.length;
+    document.getElementById('posBadge').textContent = open.length;
+    const body = document.getElementById('posBody');
+    if(open.length){
+      body.innerHTML = open.map(([sym,pos])=>{
+        const pair = sym.replace('_USDT','');
+        return `<div class="pos-row"><span>${pair} — LONG ${pos.qty.toFixed(6)} @ $${pos.entryPrice.toFixed(2)}</span><span style="color:var(--text-dim)">entered ${new Date(pos.entryTs).toLocaleTimeString()}</span></div>`;
+      }).join('');
+    } else {
+      body.innerHTML = '<div class="pos-row"><span style="color:var(--text-dim)">No open positions — flat, waiting for a trend+momentum signal</span></div>';
+    }
+  });
+
+  safe(()=>{
+    const trades = p.trades || [];
+    document.getElementById('tradesBadge').textContent = trades.length;
+    const tb = document.getElementById('tradesBody');
+    if(trades.length){
+      tb.innerHTML = trades.map(t=>{
+        const pair = (t.symbol||'').replace('_USDT','');
+        const pnlClass = t.pnl>=0?'up':'down';
+        return `<tr><td>${pair}</td><td>$${t.entryPrice.toFixed(2)}</td><td>$${t.exitPrice.toFixed(2)}</td><td class="${pnlClass}">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td><td>${t.reason}</td></tr>`;
+      }).join('');
+    } else {
+      tb.innerHTML = '<tr class="empty-row"><td colspan="5" style="padding:14px">No closed trades yet</td></tr>';
+    }
+  });
+
+  safe(()=>{
+    document.getElementById('logBadge').textContent = logs.length;
+    const lb = document.getElementById('logBody');
+    lb.innerHTML = logs.slice().reverse().map(l=>{
+      return `<div class="log-row"><span class="log-ts">${new Date(l.ts).toLocaleTimeString()}</span><span>${l.msg}</span></div>`;
+    }).join('');
+  });
+}
+
+poll();
+setInterval(poll, 5000);
+</script>
+</body>
+</html>
