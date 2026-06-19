@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lattice Bot — Admin Actions</title>
+<style>
+  body{background:#0a0e12; color:#e8edf2; font-family:'Space Mono',monospace; padding:24px; text-align:center;}
+  h1{font-size:16px; letter-spacing:1px; margin-bottom:24px;}
+  button{background:#0d1318; border:1px solid #ffb300; color:#ffb300; padding:16px 24px; font-size:14px; border-radius:8px; width:100%; max-width:400px; margin:10px 0; cursor:pointer; font-family:inherit;}
+  button:active{background:#ffb300; color:#0a0e12;}
+  #result{margin-top:20px; font-size:12px; color:#5a6b78; white-space:pre-wrap; text-align:left; max-width:400px; margin-left:auto; margin-right:auto;}
+</style>
+</head>
+<body>
+<h1>// LATTICE BOT — ADMIN ACTIONS</h1>
+
+<button onclick="reset('paper-reset')">RESET PAPER BOT (clears trade history, restarts at $500 simulated)</button>
+<br>
+<button onclick="reset('reset-pnl')">RESET REAL BOT P&amp;L BASELINE (does not touch real positions)</button>
+
+<div id="result">Tap a button above. Result will appear here.</div>
+
+<script>
+const WORKER = 'https://lattice-bot.latticecollective-io.workers.dev';
+async function reset(path){
+  document.getElementById('result').textContent = 'Sending request...';
+  try{
+    const res = await fetch(WORKER + '/' + path, { method: 'POST' });
+    const data = await res.json();
+    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+  }catch(e){
+    document.getElementById('result').textContent = 'Error: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
