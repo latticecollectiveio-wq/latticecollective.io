@@ -211,7 +211,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
         <div class="umeta">
           <div class="urow">ENGINE <span>CLOUDFLARE</span></div>
           <div class="urow">PAIRS <span>BTC/ETH/SOL</span></div>
-          <div class="urow">SPREAD <span>0.25/0.4/0.6%</span></div>
+          <div class="urow">SPREAD <span>0.9/1.3/1.8%</span></div>
           <div class="urow">LEVELS <span>3</span></div>
         </div>
       </div>
@@ -262,7 +262,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     <div class="panel">
       <div class="panel-hdr">
         <span class="ptitle">// ETH/USDT GRID LEVELS</span>
-        <span class="pbadge g">0.25-0.6% GRADUATED</span>
+        <span class="pbadge g">0.9-1.8% GRADUATED (FEE-AWARE)</span>
       </div>
       <div class="gvis">
         <div class="gl sell"><div class="gdot"></div><div class="gline"></div><span class="glbl" id="s3">SELL L3</span></div>
@@ -296,7 +296,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 
 <script>
 const W = 'https://lattice-bot.latticecollective-io.workers.dev';
-const LEVEL_SP = [0.0025, 0.004, 0.006]; // matches worker's graduated L1/L2/L3 spacing
+const LEVEL_SP = [0.009, 0.013, 0.018]; // matches worker's fee-aware graduated L1/L2/L3 spacing
 let prevBtc=0, prevEth=0, prevSol=0, startT=Date.now();
 let priceHistory=[], failCount=0;
 
