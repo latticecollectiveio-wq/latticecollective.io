@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lattice Grid Bot — PAPER TRADING</title>
+<style>
+  :root{
+    --bg:#0a0e12; --panel:#0d1318; --border:#1c252c; --text:#e8edf2; --text-dim:#5a6b78;
+    --green:#00e676; --red:#ff5252; --amber:#ffb300;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; padding:0;}
+  .header{display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--border);}
+  .logo-box{width:48px; height:48px; border:2px solid var(--green); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px;}
+  .title-block{display:flex; align-items:center; gap:14px;}
+  h1{font-size:18px; letter-spacing:2px;}
+  .sub{font-size:11px; color:var(--text-dim); letter-spacing:1px;}
+  .badge{padding:6px 14px; border-radius:20px; font-size:12px; border:1px solid var(--amber); color:var(--amber);}
+  .paper-banner{background:rgba(255,179,0,0.08); border:1px solid var(--amber); color:var(--amber); padding:10px 24px; font-size:12px; text-align:center; letter-spacing:1px;}
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); margin:1px 0;}
+  .sc{background:var(--panel); padding:18px;}
+  .sc-lbl{font-size:10px; color:var(--text-dim); letter-spacing:1px; margin-bottom:8px;}
+  .sc-val{font-size:24px; font-weight:700;}
+  .sc-sub{font-size:11px; color:var(--text-dim); margin-top:4px;}
+  .up{color:var(--green)} .down{color:var(--red)}
+  .panel{background:var(--panel); border:1px solid var(--border); margin:16px 24px;}
+  .panel-hdr{display:flex; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); font-size:11px; letter-spacing:1px; color:var(--text-dim);}
+  .pbadge{border:1px solid var(--green); color:var(--green); padding:3px 10px; border-radius:4px; font-size:10px;}
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th{text-align:left; padding:8px 16px; color:var(--text-dim); font-size:10px; letter-spacing:1px; border-bottom:1px solid var(--border);}
+  td{padding:8px 16px; border-bottom:1px solid rgba(255,255,255,0.03);}
+  .empty-row td{color:var(--text-dim); text-align:center;}
+  .log-row{padding:6px 16px; border-bottom:1px solid rgba(255,255,255,0.03); font-size:11px; display:flex; gap:10px;}
+  .log-ts{color:var(--text-dim); white-space:nowrap;}
+  .br{color:var(--green)} .sr{color:var(--red)}
+  @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title-block">
+    <div class="logo-box">◈</div>
+    <div>
+      <h1>LATTICE GRID BOT</h1>
+      <div class="sub">GRADUATED SPREAD + COST-BASIS PROTECTION — BTC/ETH/SOL — PAPER TRADING</div>
+    </div>
+  </div>
+  <span class="badge" id="statusBadge">● PAPER</span>
+</div>
+
+<div class="paper-banner">⚠ SIMULATED CAPITAL — REAL MARKET PRICES, NO REAL ORDERS ARE EVER PLACED — STARTING BALANCE $500 (PAPER) — NEVER SELLS BELOW COST BASIS</div>
+
+<div class="grid">
+  <div class="sc">
+    <div class="sc-lbl">PAPER EQUITY</div>
+    <div class="sc-val" id="equity">—</div>
+    <div class="sc-sub" id="equityPct">— since start</div>
+  </div>
+  <div class="sc">
+    <div class="sc-lbl">REALIZED P&L</div>
+    <div class="sc-val" id="realizedPnl">—</div>
+    <div class="sc-sub" id="cashLeft">— cash available</div>
+  </div>
+  <div class="sc">
+    <div class="sc-lbl">WIN RATE</div>
+    <div class="sc-val" id="winRate">—</div>
+    <div class="sc-sub" id="winSub">— wins / — trades</div>
+  </div>
+  <div class="sc">
+    <div class="sc-lbl">OPEN ORDERS</div>
+    <div class="sc-val" id="openOrderCount">—</div>
+    <div class="sc-sub">across 3 pairs</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// HOLDINGS &amp; COST BASIS</span>
+    <span class="pbadge" id="holdBadge">0</span>
+  </div>
+  <table>
+    <thead><tr><th>PAIR</th><th>QTY HELD</th><th>AVG COST</th><th>CURRENT PRICE</th><th>UNREALIZED</th></tr></thead>
+    <tbody id="holdBody"><tr class="empty-row"><td colspan="5" style="padding:14px">No holdings yet</td></tr></tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// OPEN ORDERS — ALL PAIRS</span>
+    <span class="pbadge" id="ordersBadge">0</span>
+  </div>
+  <table>
+    <thead><tr><th>PAIR</th><th>SIDE</th><th>PRICE</th><th>QTY</th></tr></thead>
+    <tbody id="ordersBody"><tr class="empty-row"><td colspan="4" style="padding:14px">No open orders</td></tr></tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// CLOSED TRADES</span>
+    <span class="pbadge" id="tradesBadge">0</span>
+  </div>
+  <table>
+    <thead><tr><th>PAIR</th><th>SELL PRICE</th><th>QTY</th><th>PROFIT</th></tr></thead>
+    <tbody id="tradesBody"><tr class="empty-row"><td colspan="4" style="padding:14px">No closed trades yet</td></tr></tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-hdr">
+    <span>// STRATEGY LOG</span>
+    <span class="pbadge" id="logBadge">0</span>
+  </div>
+  <div id="logBody" style="max-height:300px; overflow-y:auto;"></div>
+</div>
+
+<script>
+const WORKER = 'https://lattice-bot.latticecollective-io.workers.dev';
+
+function safe(fn){ try{ fn(); }catch(e){ console.warn(e); } }
+
+async function poll(){
+  try{
+    const res = await fetch(WORKER + '/paper-grid-status');
+    const data = await res.json();
+    render(data);
+  }catch(e){ console.warn('paper-grid-status fetch failed', e); }
+}
+
+function render(data){
+  const p = data.paperGrid || {};
+  const logs = data.logs || [];
+  const assets = p.assets || {};
+  const openOrders = p.openOrders || {};
+
+  safe(()=>{
+    const eq = p.equity || 0;
+    document.getElementById('equity').textContent = '$'+eq.toFixed(2);
+    const pct = p.pnlPct || 0;
+    const el = document.getElementById('equityPct');
+    el.textContent = (pct>=0?'+':'')+pct.toFixed(2)+'% since start';
+    el.className = 'sc-sub ' + (pct>=0?'up':'down');
+  });
+
+  safe(()=>{
+    const rp = p.realizedPnl || 0;
+    const el = document.getElementById('realizedPnl');
+    el.textContent = (rp>=0?'+':'')+'$'+rp.toFixed(2);
+    el.className = 'sc-val ' + (rp>=0?'up':'down');
+    document.getElementById('cashLeft').textContent = '$'+(p.cash||0).toFixed(2)+' cash available';
+  });
+
+  safe(()=>{
+    document.getElementById('winRate').textContent = (p.winRate||0)+'%';
+    document.getElementById('winSub').textContent = (p.winCount||0)+' wins / '+(p.tradeCount||0)+' trades';
+  });
+
+  safe(()=>{
+    let allOrders = [];
+    for (const [sym, list] of Object.entries(openOrders)) {
+      for (const o of (list||[])) allOrders.push({pair: sym.replace('_USDT',''), ...o});
+    }
+    document.getElementById('openOrderCount').textContent = allOrders.length;
+    document.getElementById('ordersBadge').textContent = allOrders.length;
+    const ob = document.getElementById('ordersBody');
+    if(allOrders.length){
+      ob.innerHTML = allOrders.map(o=>{
+        return `<tr class="${o.side==='BUY'?'br':'sr'}"><td>${o.pair}</td><td>${o.side}</td><td>$${o.price.toFixed(2)}</td><td>${o.qty.toFixed(6)}</td></tr>`;
+      }).join('');
+    } else {
+      ob.innerHTML = '<tr class="empty-row"><td colspan="4" style="padding:14px">No open orders</td></tr>';
+    }
+  });
+
+  safe(()=>{
+    const rows = Object.entries(assets).filter(([k,v])=>v && v.qty > 0.000001);
+    document.getElementById('holdBadge').textContent = rows.length;
+    const hb = document.getElementById('holdBody');
+    if(rows.length){
+      hb.innerHTML = rows.map(([sym,a])=>{
+        const pair = sym.replace('_USDT','');
+        return `<tr><td>${pair}</td><td>${a.qty.toFixed(6)}</td><td>$${a.avgCost.toFixed(2)}</td><td>—</td><td>—</td></tr>`;
+      }).join('');
+    } else {
+      hb.innerHTML = '<tr class="empty-row"><td colspan="5" style="padding:14px">No holdings yet</td></tr>';
+    }
+  });
+
+  safe(()=>{
+    const trades = p.trades || [];
+    document.getElementById('tradesBadge').textContent = trades.length;
+    const tb = document.getElementById('tradesBody');
+    if(trades.length){
+      tb.innerHTML = trades.map(t=>{
+        const pair = (t.symbol||'').replace('_USDT','');
+        const cls = t.profit>=0?'up':'down';
+        return `<tr><td>${pair}</td><td>$${t.price.toFixed(2)}</td><td>${t.qty.toFixed(6)}</td><td class="${cls}">${t.profit>=0?'+':''}$${t.profit.toFixed(4)}</td></tr>`;
+      }).join('');
+    } else {
+      tb.innerHTML = '<tr class="empty-row"><td colspan="4" style="padding:14px">No closed trades yet</td></tr>';
+    }
+  });
+
+  safe(()=>{
+    document.getElementById('logBadge').textContent = logs.length;
+    const lb = document.getElementById('logBody');
+    lb.innerHTML = logs.slice().reverse().map(l=>{
+      return `<div class="log-row"><span class="log-ts">${new Date(l.ts).toLocaleTimeString()}</span><span>${l.msg}</span></div>`;
+    }).join('');
+  });
+}
+
+poll();
+setInterval(poll, 5000);
+</script>
+</body>
+</html>
