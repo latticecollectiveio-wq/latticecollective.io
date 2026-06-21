@@ -15,9 +15,13 @@
 <body>
 <h1>// LATTICE BOT — ADMIN ACTIONS</h1>
 
-<button onclick="reset('paper-reset')">RESET PAPER BOT (clears trade history, restarts at $500 simulated)</button>
+<button onclick="reset('paper-reset')">RESET PAPER DIRECTIONAL BOT (clears trade history, restarts at $500 simulated)</button>
+<br>
+<button onclick="reset('paper-grid-reset')">RESET PAPER GRID BOT (clears trade history, restarts at $500 simulated)</button>
 <br>
 <button onclick="reset('reset-pnl')">RESET REAL BOT P&amp;L BASELINE (does not touch real positions)</button>
+<br>
+<button onclick="cancelAll()" style="border-color:#ff5252; color:#ff5252;">CANCEL ALL REAL OPEN ORDERS (frees reserved USDT — does NOT sell held BTC/ETH/SOL)</button>
 
 <div id="result">Tap a button above. Result will appear here.</div>
 
@@ -27,6 +31,16 @@ async function reset(path){
   document.getElementById('result').textContent = 'Sending request...';
   try{
     const res = await fetch(WORKER + '/' + path, { method: 'POST' });
+    const data = await res.json();
+    document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+  }catch(e){
+    document.getElementById('result').textContent = 'Error: ' + e.message;
+  }
+}
+async function cancelAll(){
+  document.getElementById('result').textContent = 'Cancelling all open orders...';
+  try{
+    const res = await fetch(WORKER + '/cancel?pair=ALL', { method: 'POST' });
     const data = await res.json();
     document.getElementById('result').textContent = JSON.stringify(data, null, 2);
   }catch(e){
