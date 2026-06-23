@@ -173,18 +173,19 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     </div>
   </div>
 
-  <!-- Realized P&L Banner -->
+  <!-- Net Performance Banner -->
   <div class="rpnl-banner">
     <div class="rpnl-left">
-      <div class="rpnl-icon">💰</div>
+      <div class="rpnl-icon">📊</div>
       <div>
-        <div class="rpnl-label">REALIZED PROFIT — FROM SELL FILLS</div>
+        <div class="rpnl-label">NET PERFORMANCE — PORTFOLIO VS BASELINE (incl. all holdings)</div>
         <div class="rpnl-val" id="realizedPnl">$0.0000</div>
       </div>
     </div>
     <div class="rpnl-right">
-      <div id="sellFillsCount">0 sell fills</div>
+      <div id="sellFillsCount" style="font-size:11px">0 sell fills</div>
       <div style="margin-top:3px;color:#fff;font-family:'Space Mono',monospace;font-size:11px" id="buyFillsCount">0 buy fills</div>
+      <div style="margin-top:6px;font-size:10px;color:#5a6b78" id="realizedSub">$0.00 realized</div>
     </div>
   </div>
 
@@ -466,12 +467,16 @@ function render(d) {
 
   safe(()=>{
     // Realized P&L
-    const rp=s.realizedPnl||0;
-    const rpEl=document.getElementById('realizedPnl');
-    rpEl.textContent=(rp>=0?'+':'')+' $'+Math.abs(rp).toFixed(4);
-    rpEl.style.color=rp>=0?'var(--green)':'var(--red)';
-    document.getElementById('sellFillsCount').textContent=(s.sellFills||0)+' sell fills';
-    document.getElementById('buyFillsCount').textContent=(s.filledOrders||0)-(s.sellFills||0)+' buy fills';
+    // Net performance = portfolio value vs baseline (matches what Crypto.com app shows)
+    const netPnl = s.pnl || 0;
+    const rpEl = document.getElementById('realizedPnl');
+    rpEl.textContent = (netPnl >= 0 ? '+' : '') + ' $' + Math.abs(netPnl).toFixed(2);
+    rpEl.style.color = netPnl >= 0 ? 'var(--green)' : 'var(--red)';
+    // Keep realized profit visible as a secondary line so you can see both
+    const rp = s.realizedPnl || 0;
+    document.getElementById('realizedSub').textContent = (rp >= 0 ? '+' : '') + '$' + rp.toFixed(4) + ' realized from sells';
+    document.getElementById('sellFillsCount').textContent = (s.sellFills || 0) + ' sell fills';
+    document.getElementById('buyFillsCount').textContent = (s.filledOrders || 0) - (s.sellFills || 0) + ' buy fills';
   });
 
   safe(()=>{
