@@ -22,6 +22,10 @@
 <button onclick="reset('reset-pnl')">RESET REAL BOT P&amp;L BASELINE (does not touch real positions)</button>
 <br>
 <button onclick="cancelAll()" style="border-color:#ff5252; color:#ff5252;">CANCEL ALL REAL OPEN ORDERS (frees reserved USDT — does NOT sell held BTC/ETH/SOL)</button>
+<br>
+<button onclick="reset('halt')" style="border-color:#ff5252; color:#ff5252; font-weight:bold;">⏹ HALT BOT — STOP ALL NEW ORDERS (use before withdrawing)</button>
+<br>
+<button onclick="reset('resume')" style="border-color:#22c55e; color:#22c55e;">▶ RESUME BOT — RESTART TRADING</button>
 
 <div id="result">Tap a button above. Result will appear here.</div>
 
