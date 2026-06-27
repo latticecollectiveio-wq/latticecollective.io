@@ -31,10 +31,14 @@
 
 <script>
 const WORKER = 'https://lattice-bot.latticecollective-io.workers.dev';
+const PAPER_GRID_WORKER = 'https://lattice-paper-grid.latticecollective-io.workers.dev';
+
 async function reset(path){
   document.getElementById('result').textContent = 'Sending request...';
+  // Paper grid reset goes to the separate paper grid worker
+  const url = path === 'paper-grid-reset' ? PAPER_GRID_WORKER : WORKER;
   try{
-    const res = await fetch(WORKER + '/' + path, { method: 'POST' });
+    const res = await fetch(url + '/' + path, { method: 'POST' });
     const data = await res.json();
     document.getElementById('result').textContent = JSON.stringify(data, null, 2);
   }catch(e){
