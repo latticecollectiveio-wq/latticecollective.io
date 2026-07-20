@@ -9,7 +9,7 @@
 :root{--bg:#080c0f;--bg2:#0d1318;--bg3:#111920;--border:#1a2530;--green:#00e676;--red:#ff3d57;--blue:#2196f3;--amber:#ffb300;--muted:#4a6070;--text:#c8d8e0;--text2:#7a9aaa;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;padding-bottom:40px;}
-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
 .logo{display:flex;align-items:center;gap:12px;}
 .logo-icon{width:38px;height:38px;border:2px solid var(--green);display:grid;place-items:center;font-size:16px;color:var(--green);}
 .logo h1{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;letter-spacing:3px;color:#fff;}
@@ -40,6 +40,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 
 .ptitle{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text2);}
 .pbadge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border);}
 .pbadge.g{color:var(--green);border-color:rgba(0,230,118,.3);}
+.pbadge.r{color:var(--red);border-color:rgba(255,61,87,.3);}
 .otbl{width:100%;font-size:11px;border-collapse:collapse;}
 .otbl th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);padding:7px 9px;text-align:left;border-bottom:1px solid var(--border);}
 .otbl td{padding:7px 9px;border-bottom:1px solid rgba(26,37,48,.5);font-family:'Space Mono',monospace;}
@@ -83,7 +84,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </header>
 
-<div class="fixbar">✓ order_id validation · ✓ stuck-order eviction · ✓ fee-aware P&amp;L · ✓ oversell protection · ✓ self-tuning profit margin per pair</div>
+<div class="fixbar">✓ order_id validation · ✓ stuck-order eviction · ✓ fee-aware P&amp;L · ✓ oversell protection · ✓ cash-reservation fix · ✓ self-tuning profit margin per pair</div>
 
 <div class="main">
 
@@ -177,6 +178,7 @@ function setStatus(cls, txt) {
   document.getElementById('sTxt').textContent = txt;
 }
 function safe(fn) { try { fn(); } catch (e) { console.warn('Render err:', e); } }
+function fmtSigned(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
 
 async function fetchPrices() {
   for (const sym of Object.keys(prices)) {
@@ -220,7 +222,9 @@ function render(d) {
 
   safe(() => {
     const cash = g.cash || 0;
-    document.getElementById('cashBal').textContent = '$' + cash.toFixed(2);
+    const cashEl = document.getElementById('cashBal');
+    cashEl.textContent = (cash >= 0 ? '$' : '-$') + Math.abs(cash).toFixed(2);
+    cashEl.className = 'sc-val ' + (cash >= 0 ? 'g' : 'r');
 
     let equity = cash;
     const assets = g.assets || {};
@@ -229,7 +233,7 @@ function render(d) {
     const pnl = equity - START_CAPITAL;
     const pct = (pnl / START_CAPITAL) * 100;
     const pnlEl = document.getElementById('pnl');
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + ' $' + Math.abs(pnl).toFixed(2);
+    pnlEl.textContent = fmtSigned(pnl);
     pnlEl.className = 'sc-val ' + (pnl >= 0 ? 'g' : 'r');
     document.getElementById('pnlPct').textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '% since start';
   });
@@ -271,8 +275,8 @@ function render(d) {
     const openOrders = g.openOrders || {};
     let all = [];
     Object.keys(openOrders).forEach(sym => (openOrders[sym] || []).forEach(o => all.push({ ...o, pair: sym })));
-    document.getElementById('openCnt') && (document.getElementById('openCnt').textContent = all.length);
     document.getElementById('openBadge').textContent = all.length + ' ACTIVE';
+    document.getElementById('openBadge').className = 'pbadge ' + (all.length > 30 ? 'r' : 'g');
     const ob = document.getElementById('ordersBody');
     ob.innerHTML = all.length ? all.map(o => `<tr class="${o.side === 'BUY' ? 'br' : 'sr'}">
       <td>${o.pair.replace('_USDT','')}</td><td>${o.side}</td>
@@ -288,7 +292,7 @@ function render(d) {
       <td>${(t.symbol||'—').replace('_USDT','')}</td>
       <td>$${(t.price||0).toFixed(2)}</td>
       <td>${(t.qty||0).toFixed(6)}</td>
-      <td>${(t.profit||0) >= 0 ? '+' : ''}$${(t.profit||0).toFixed(4)}</td>
+      <td>${fmtSigned(t.profit||0)}</td>
     </tr>`).join('') : '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No trades yet</td></tr>';
   });
 
