@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lattice Collective — Dashboard</title>
+<style>
+  body{background:#0a0e12; color:#e8edf2; font-family:'Space Mono',monospace; padding:20px; max-width:720px; margin:0 auto;}
+  h1{font-size:16px; letter-spacing:1px; margin-bottom:4px;}
+  .sub{color:#5a6b78; font-size:11px; margin-bottom:24px;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;}
+  .card{background:#0d1318; border:1px solid #1c242c; border-radius:10px; padding:16px;}
+  .card .label{font-size:10px; color:#5a6b78; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;}
+  .card .value{font-size:22px; font-weight:bold;}
+  .pos{color:#22c55e;} .neg{color:#ff5252;} .neutral{color:#e8edf2;}
+  .mode{display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:bold; letter-spacing:1px;}
+  .mode-active{background:#22c55e22; color:#22c55e; border:1px solid #22c55e;}
+  .mode-other{background:#ffb30022; color:#ffb300; border:1px solid #ffb300;}
+  table{width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;}
+  th{text-align:left; color:#5a6b78; font-weight:normal; font-size:10px; letter-spacing:1px; text-transform:uppercase; padding-bottom:8px; border-bottom:1px solid #1c242c;}
+  td{padding:8px 0; border-bottom:1px solid #12181f;}
+  .caveats{margin-top:20px; padding:12px 14px; background:#0d1318; border:1px solid #ffb30044; border-radius:8px; font-size:11px; color:#ffb300;}
+  .caveats div{margin-bottom:6px;}
+  .caveats div:last-child{margin-bottom:0;}
+  #status{font-size:11px; color:#5a6b78; margin-top:16px; text-align:center;}
+  .error{color:#ff5252; font-size:12px; text-align:center; padding:40px 0;}
+</style>
+</head>
+<body>
+<h1>// LATTICE COLLECTIVE — DASHBOARD</h1>
+<div class="sub">Live from backend · auto-refreshing every 10s</div>
+
+<div id="content">
+  <div class="error">Loading...</div>
+</div>
+
+<div id="status"></div>
+
+<script>
+const API = 'https://lattice-backend-production-96da.up.railway.app/api/v1/summary';
+
+function fmtUsd(n) {
+  const sign = n < 0 ? '-' : '';
+  return sign + '$' + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function pnlClass(n) {
+  return n > 0 ? 'pos' : (n < 0 ? 'neg' : 'neutral');
+}
+
+async function loadSummary() {
+  const content = document.getElementById('content');
+  const status = document.getElementById('status');
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+
+    const modeClass = d.system_mode === 'ACTIVE' ? 'mode-active' : 'mode-other';
+
+    let exposureRows = '';
+    const instruments = Object.keys(d.exposure_by_instrument || {});
+    if (instruments.length === 0) {
+      exposureRows = '<tr><td colspan="2" style="color:#5a6b78;">No open positions</td></tr>';
+    } else {
+      instruments.forEach(inst => {
+        const val = d.exposure_by_instrument[inst];
+        const missing = (d.positions_missing_live_price || []).includes(inst);
+        exposureRows += `<tr><td>${inst}${missing ? ' <span style="color:#ffb300;">(cost-basis fallback)</span>' : ''}</td><td style="text-align:right;">${fmtUsd(val)}</td></tr>`;
+      });
+    }
+
+    let caveatsHtml = '';
+    (d.caveats || []).forEach(c => { caveatsHtml += `<div>⚠ ${c}</div>`; });
+
+    content.innerHTML = `
+      <div class="grid">
+        <div class="card">
+          <div class="label">Portfolio Value (Live)</div>
+          <div class="value neutral">${fmtUsd(d.portfolio_value)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Unrealized P&amp;L</div>
+          <div class="value ${pnlClass(d.unrealized_pnl_total)}">${fmtUsd(d.unrealized_pnl_total)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Realized P&amp;L</div>
+          <div class="value ${pnlClass(d.realized_pnl_total)}">${fmtUsd(d.realized_pnl_total)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Drawdown (approx)</div>
+          <div class="value neg">${d.running_drawdown_pct_approx}%</div>
+        </div>
+        <div class="card">
+          <div class="label">System Mode</div>
+          <div class="value"><span class="mode ${modeClass}">${d.system_mode}</span></div>
+        </div>
+        <div class="card">
+          <div class="label">Risk Rejections</div>
+          <div class="value neutral">${d.recent_risk_rejections}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Exposure by Instrument</div>
+        <table>
+          <tr><th>Instrument</th><th style="text-align:right;">Market Value</th></tr>
+          ${exposureRows}
+        </table>
+      </div>
+
+      ${caveatsHtml ? `<div class="caveats">${caveatsHtml}</div>` : ''}
+    `;
+    status.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    content.innerHTML = `<div class="error">Failed to load: ${e.message}</div>`;
+    status.textContent = 'Retrying in 10s...';
+  }
+}
+
+loadSummary();
+setInterval(loadSummary, 10000);
+</script>
+</body>
+</html>
