@@ -1,311 +1,374 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lattice Grid v2 — Live Trading</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
-:root{--bg:#080c0f;--bg2:#0d1318;--bg3:#111920;--border:#1a2530;--green:#00e676;--red:#ff3d57;--blue:#2196f3;--muted:#4a6070;--text:#c8d8e0;--text2:#7a9aaa;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;padding-bottom:40px;}
-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.logo{display:flex;align-items:center;gap:12px;}
-.logo-icon{width:38px;height:38px;border:2px solid var(--green);display:grid;place-items:center;font-size:16px;color:var(--green);}
-.logo h1{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;letter-spacing:3px;color:#fff;}
-.logo p{font-size:9px;letter-spacing:2px;color:var(--text2);}
-.spill{display:flex;align-items:center;gap:7px;padding:5px 13px;border:1px solid var(--border);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;}
-.sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
-.sdot.live{background:var(--green);animation:blink 1.5s infinite;}
-.sdot.err{background:var(--red);}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.ticker{background:var(--bg3);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;gap:28px;overflow-x:auto;white-space:nowrap;}
-.ti{display:flex;align-items:center;gap:8px;}
-.tsym{font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);letter-spacing:1px;}
-.tprice{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff;}
-.main{padding:18px 22px;display:grid;gap:14px;}
-.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
-@media(max-width:800px){.stat-row{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:500px){.stat-row{grid-template-columns:repeat(2,1fr);}}
-.sc{background:var(--bg2);border:1px solid var(--border);padding:16px;}
-.sc-lbl{font-size:9px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;}
-.sc-val{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:#fff;}
-.sc-val.g{color:var(--green);}.sc-val.r{color:var(--red);}
-.sc-sub{font-size:10px;color:var(--text2);margin-top:3px;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:800px){.two-col{grid-template-columns:1fr;}}
-.panel{background:var(--bg2);border:1px solid var(--border);}
-.panel-hdr{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.ptitle{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text2);}
-.pbadge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border);}
-.pbadge.g{color:var(--green);border-color:rgba(0,230,118,.3);}
-.otbl{width:100%;font-size:11px;border-collapse:collapse;}
-.otbl th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);padding:7px 9px;text-align:left;border-bottom:1px solid var(--border);}
-.otbl td{padding:7px 9px;border-bottom:1px solid rgba(26,37,48,.5);font-family:'Space Mono',monospace;}
-.otbl tr:last-child td{border:none;}
-.otbl tr.br td{color:var(--green);}
-.otbl tr.sr td{color:var(--red);}
-.empty-row td{color:var(--muted)!important;font-size:10px;}
-.bal-item{padding:12px 15px;border-bottom:1px solid rgba(26,37,48,.5);}
-.bal-item:last-child{border:none;}
-.bal-row{display:flex;justify-content:space-between;font-size:11px;}
-.bsym{font-family:'Space Mono',monospace;color:var(--text2);letter-spacing:1px;}
-.bval{font-family:'Space Mono',monospace;color:#fff;font-weight:700;}
-.bsub{font-size:9px;color:var(--text2);margin-top:3px;}
-.log-wrap{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;padding:7px;}
-.le{display:flex;gap:7px;font-size:10px;padding:5px 7px;background:var(--bg3);}
-.le.buy{border-left:2px solid var(--green);}
-.le.sell{border-left:2px solid var(--red);}
-.le.info{border-left:2px solid var(--blue);}
-.lt{font-family:'Space Mono',monospace;color:var(--muted);white-space:nowrap;font-size:9px;padding-top:1px;}
-.lm{color:var(--text);flex:1;line-height:1.4;}
-footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:6px;}
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border);}
-</style>
-</head>
-<body>
+// ============================================================
+// LATTICE GRID BOT — REAL CAPITAL
+// Graduated spread: L1 0.30%, L2 0.5%, L3 0.7%
+// On BUY fill  → places REAL SELL above it (never below cost basis)
+// On SELL fill → counts win, places REAL BUY below it
+// Auto top-up if open orders drop below target
+// NEVER sells below cost basis — holds until price recovers
+// Real market prices, REAL ORDERS, REAL CAPITAL ($500 total)
+// ============================================================
 
-<header>
-  <div class="logo">
-    <div class="logo-icon">◈</div>
-    <div>
-      <h1>LATTICE GRID V2</h1>
-      <p>REAL CAPITAL — CRYPTO.COM EXCHANGE</p>
-    </div>
-  </div>
-  <div class="spill"><div class="sdot" id="sDot"></div><span id="sTxt">CONNECTING</span></div>
-</header>
+const PAIRS              = ['BTC_USDT', 'ETH_USDT', 'SOL_USDT'];
+const LEVELS             = 3;
+const LEVEL_SPACINGS     = [0.003, 0.005, 0.007]; // L1 0.30%, L2 0.5%, L3 0.7%
+const MIN_PROFIT_MARGIN  = 0.006; // minimum 0.6% above cost basis before selling
+const REAL_START_CAPITAL = 500;
+const BASE_URL           = 'https://api.crypto.com/exchange/v1';
 
-<div class="ticker">
-  <div class="ti"><span class="tsym">CASH (USDT)</span><span class="tprice" id="cashV">—</span></div>
-  <div class="ti"><span class="tsym">EQUITY</span><span class="tprice" id="equityV">—</span></div>
-  <div class="ti"><span class="tsym">P&amp;L</span><span class="tprice" id="pnlV">—</span></div>
-  <div class="ti"><span class="tsym">OPEN ORDERS</span><span class="tprice" id="openCnt">—</span></div>
-  <div class="ti"><span class="tsym">LAST RUN</span><span class="tprice" id="lastRun" style="font-size:11px">—</span></div>
-</div>
-
-<div class="main">
-
-  <div class="stat-row">
-    <div class="sc">
-      <div class="sc-lbl">TOTAL P&amp;L</div>
-      <div class="sc-val" id="pnl">$0.00</div>
-      <div class="sc-sub" id="pnlPct">+0.00% since start</div>
-    </div>
-    <div class="sc">
-      <div class="sc-lbl">CASH</div>
-      <div class="sc-val g" id="cashBal">—</div>
-      <div class="sc-sub">Available (bot tracked)</div>
-    </div>
-    <div class="sc">
-      <div class="sc-lbl">TRADES</div>
-      <div class="sc-val" id="tradeCount">0</div>
-      <div class="sc-sub" id="winSub">0 wins</div>
-    </div>
-    <div class="sc">
-      <div class="sc-lbl">WIN RATE</div>
-      <div class="sc-val" id="winRate">0%</div>
-      <div class="sc-sub">of completed trades</div>
-    </div>
-    <div class="sc">
-      <div class="sc-lbl">STARTED</div>
-      <div class="sc-val" id="startedAt" style="font-size:13px">—</div>
-      <div class="sc-sub">bot launch time</div>
-    </div>
-  </div>
-
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-hdr"><span class="ptitle">// HOLDINGS</span></div>
-      <div id="assetsWrap"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-hdr">
-        <span class="ptitle">// OPEN ORDERS — ALL PAIRS</span>
-        <span class="pbadge g" id="openBadge">0 ACTIVE</span>
-      </div>
-      <table class="otbl">
-        <thead><tr><th>PAIR</th><th>SIDE</th><th>PRICE</th><th>QTY</th></tr></thead>
-        <tbody id="ordersBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-hdr">
-      <span class="ptitle">// RECENT TRADES</span>
-      <span class="pbadge g" id="tradesBadge">0</span>
-    </div>
-    <table class="otbl">
-      <thead><tr><th>PAIR</th><th>PRICE</th><th>QTY</th><th>PROFIT</th></tr></thead>
-      <tbody id="tradesBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No trades yet</td></tr></tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <div class="panel-hdr">
-      <span class="ptitle">// LIVE ACTIVITY LOG</span>
-      <span class="pbadge" id="logBadge">0 ENTRIES</span>
-    </div>
-    <div class="log-wrap" id="logFeed">
-      <div class="le info"><span class="lt">--:--:--</span><span class="lm">Connecting to Lattice Grid v2...</span></div>
-    </div>
-  </div>
-
-</div>
-
-<footer>
-  <span>LATTICE COLLECTIVE © 2026 — CLOUDFLARE WORKERS 24/7</span>
-  <span>UPDATED <span id="updTime">—</span></span>
-</footer>
-
-<script>
-const W = 'https://lattice-grid-v2.latticecollective-io.workers.dev';
-const START_CAPITAL = 500;
-let failCount = 0;
-
-function setStatus(cls, txt) {
-  document.getElementById('sDot').className = 'sdot ' + cls;
-  document.getElementById('sTxt').textContent = txt;
+// ── Signing (Crypto.com Exchange v1 HMAC-SHA256) ─────────────
+function paramsToString(obj) {
+  if (obj === null || obj === undefined) return '';
+  if (Array.isArray(obj)) {
+    return obj.map(o => (o !== null && typeof o === 'object') ? paramsToString(o) : String(o)).join('');
+  }
+  if (typeof obj === 'object') {
+    return Object.keys(obj).sort().reduce((acc, k) => {
+      const v = obj[k];
+      const valStr = (v !== null && typeof v === 'object') ? paramsToString(v) : String(v);
+      return acc + k + valStr;
+    }, '');
+  }
+  return String(obj);
 }
-function safe(fn) { try { fn(); } catch(e) { console.warn('Render err:', e); } }
 
-async function poll() {
+async function hmacSha256Hex(message, secret) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  );
+  const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return [...new Uint8Array(sigBuf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+let reqIdCounter = 1;
+async function callApi(env, method, params = {}) {
+  const apiKey    = env.CRYPTOCOM_API_KEY;
+  const apiSecret = env.CRYPTOCOM_API_SECRET;
+  const id        = Date.now() + (reqIdCounter++ % 1000);
+  const nonce     = Date.now();
+  const paramsStr = paramsToString(params);
+  const sigPayload = method + id + apiKey + paramsStr + nonce;
+  const sig = await hmacSha256Hex(sigPayload, apiSecret);
+
+  const body = { id, method, api_key: apiKey, params, nonce, sig };
+  const res = await fetch(`${BASE_URL}/${method}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.code !== 0) {
+    throw new Error(`${method} error ${data.code}: ${data.message || JSON.stringify(data)}`);
+  }
+  return data.result;
+}
+
+// ── Instrument precision (cached) ────────────────────────────
+let instrumentMetaCache = {};
+async function getInstrumentMeta(symbol) {
+  if (instrumentMetaCache[symbol]) return instrumentMetaCache[symbol];
   try {
-    const res = await fetch(`${W}/paper-grid-status`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const res = await fetch(`${BASE_URL}/public/get-instruments`);
     const d = await res.json();
-    failCount = 0;
-    setStatus('live', 'LIVE');
-    render(d);
+    const list = d?.result?.data || [];
+    for (const inst of list) {
+      const sym = inst.symbol || inst.instrument_name;
+      instrumentMetaCache[sym] = {
+        priceDecimals: inst.price_decimals ?? inst.quote_decimals ?? 2,
+        qtyDecimals:   inst.quantity_decimals ?? inst.qty_decimals ?? 6
+      };
+    }
+  } catch (e) {}
+  return instrumentMetaCache[symbol] || { priceDecimals: 2, qtyDecimals: 6 };
+}
+
+// ── Real order placement / status ────────────────────────────
+async function placeOrder(env, symbol, side, price, qty, meta) {
+  const priceStr = price.toFixed(meta.priceDecimals);
+  const qtyStr   = qty.toFixed(meta.qtyDecimals);
+  const result = await callApi(env, 'private/create-order', {
+    instrument_name: symbol,
+    side,
+    type: 'LIMIT',
+    price: priceStr,
+    quantity: qtyStr,
+    time_in_force: 'GOOD_TILL_CANCEL'
+  });
+  return result.order_id;
+}
+
+async function getOrderDetail(env, orderId) {
+  return await callApi(env, 'private/get-order-detail', { order_id: String(orderId) });
+}
+
+async function cancelOrder(env, symbol, orderId) {
+  try {
+    return await callApi(env, 'private/cancel-order', { instrument_name: symbol, order_id: String(orderId) });
   } catch (e) {
-    failCount++;
-    if (failCount >= 3) setStatus('err', 'OFFLINE');
+    return null;
   }
 }
 
-// Fetch live prices directly from Crypto.com public endpoint for equity calc
-let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0 };
-async function fetchPrices() {
-  for (const sym of Object.keys(prices)) {
-    try {
-      const r = await fetch(`https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=${sym}`);
-      const j = await r.json();
-      const p = parseFloat(j?.result?.data?.[0]?.a || j?.result?.data?.[0]?.k || 0);
-      if (p) prices[sym] = p;
-    } catch(e) {}
+async function getTicker(symbol) {
+  try {
+    const res = await fetch(`${BASE_URL}/public/get-tickers?instrument_name=${symbol}`);
+    const d = await res.json();
+    return d?.result?.data?.[0] || null;
+  } catch (e) { return null; }
+}
+
+// ── Real account balance (actual Crypto.com Exchange data) ───
+async function getRealBalance(env) {
+  try {
+    const result = await callApi(env, 'private/user-balance', {});
+    return result;
+  } catch (e) {
+    return { error: e.message };
   }
 }
 
-function render(d) {
-  const g = d.paperGrid || {};
-  const logs = d.logs || [];
-
-  safe(() => {
-    document.getElementById('startedAt').textContent = g.startedAt ? new Date(g.startedAt).toLocaleString() : '—';
-  });
-
-  safe(() => {
-    const cash = g.cash || 0;
-    document.getElementById('cashV').textContent = '$' + cash.toFixed(2);
-    document.getElementById('cashBal').textContent = '$' + cash.toFixed(2);
-
-    let equity = cash;
-    const assets = g.assets || {};
-    Object.keys(assets).forEach(sym => {
-      equity += (assets[sym].qty || 0) * (prices[sym] || 0);
-    });
-    document.getElementById('equityV').textContent = '$' + equity.toFixed(2);
-
-    const pnl = equity - START_CAPITAL;
-    const pct = (pnl / START_CAPITAL) * 100;
-    document.getElementById('pnlV').textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
-    const pnlEl = document.getElementById('pnl');
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + ' $' + Math.abs(pnl).toFixed(2);
-    pnlEl.className = 'sc-val ' + (pnl >= 0 ? 'g' : 'r');
-    document.getElementById('pnlPct').textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '% since start';
-  });
-
-  safe(() => {
-    document.getElementById('tradeCount').textContent = g.tradeCount || 0;
-    document.getElementById('winSub').textContent = (g.winCount || 0) + ' wins';
-    const rate = g.tradeCount > 0 ? Math.round((g.winCount / g.tradeCount) * 100) : 0;
-    document.getElementById('winRate').textContent = rate + '%';
-  });
-
-  safe(() => {
-    const assets = g.assets || {};
-    const wrap = document.getElementById('assetsWrap');
-    wrap.innerHTML = Object.keys(assets).map(sym => {
-      const a = assets[sym];
-      const price = prices[sym] || 0;
-      const val = (a.qty || 0) * price;
-      return `<div class="bal-item">
-        <div class="bal-row"><span class="bsym">${sym.replace('_USDT','')}</span><span class="bval">${(a.qty||0).toFixed(6)}</span></div>
-        <div class="bsub">avg cost $${(a.avgCost||0).toFixed(2)} — value ≈ $${val.toFixed(2)}</div>
-      </div>`;
-    }).join('');
-  });
-
-  safe(() => {
-    const openOrders = g.openOrders || {};
-    let all = [];
-    Object.keys(openOrders).forEach(sym => {
-      (openOrders[sym] || []).forEach(o => all.push({ ...o, pair: sym }));
-    });
-    document.getElementById('openCnt').textContent = all.length;
-    document.getElementById('openBadge').textContent = all.length + ' ACTIVE';
-    const ob = document.getElementById('ordersBody');
-    if (all.length) {
-      ob.innerHTML = all.map(o => `<tr class="${o.side === 'BUY' ? 'br' : 'sr'}">
-        <td>${o.pair.replace('_USDT','')}</td><td>${o.side}</td>
-        <td>$${(o.price||0).toFixed(2)}</td><td>${(o.qty||0).toFixed(6)}</td>
-      </tr>`).join('');
-    } else {
-      ob.innerHTML = '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr>';
-    }
-  });
-
-  safe(() => {
-    const trades = g.trades || [];
-    document.getElementById('tradesBadge').textContent = trades.length;
-    const tb = document.getElementById('tradesBody');
-    if (trades.length) {
-      tb.innerHTML = trades.map(t => `<tr class="${(t.profit||0) >= 0 ? 'br' : 'sr'}">
-        <td>${(t.symbol||'—').replace('_USDT','')}</td>
-        <td>$${(t.price||0).toFixed(2)}</td>
-        <td>${(t.qty||0).toFixed(6)}</td>
-        <td>${(t.profit||0) >= 0 ? '+' : ''}$${(t.profit||0).toFixed(4)}</td>
-      </tr>`).join('');
-    } else {
-      tb.innerHTML = '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No trades yet</td></tr>';
-    }
-  });
-
-  safe(() => {
-    document.getElementById('logBadge').textContent = logs.length + ' ENTRIES';
-    if (logs.length) {
-      document.getElementById('logFeed').innerHTML = [...logs].reverse().slice(0, 60).map(l => {
-        const msg = l.msg || '';
-        const type = msg.includes('BUY') ? 'buy' : msg.includes('SELL') ? 'sell' : 'info';
-        const time = l.ts ? new Date(l.ts).toLocaleTimeString() : '--:--:--';
-        return `<div class="le ${type}"><span class="lt">${time}</span><span class="lm">${msg}</span></div>`;
-      }).join('');
-    }
-    document.getElementById('updTime').textContent = new Date().toLocaleTimeString();
-  });
+// ── State ─────────────────────────────────────────────────────
+async function loadState(env) {
+  try {
+    const s = JSON.parse((await env.LATTICE_BOT.get('grid_v2_state')) || 'null');
+    if (s) return s;
+  } catch (e) {}
+  const fresh = {
+    startedAt:   new Date().toISOString(),
+    cash:        REAL_START_CAPITAL,
+    assets:      {},
+    openOrders:  {},
+    realizedPnl: 0,
+    tradeCount:  0,
+    winCount:    0,
+    trades:      []
+  };
+  for (const s of PAIRS) {
+    fresh.assets[s]     = { qty: 0, avgCost: 0 };
+    fresh.openOrders[s] = [];
+  }
+  return fresh;
 }
 
-async function tick() {
-  await fetchPrices();
-  await poll();
+async function saveState(env, state, newLogs) {
+  await env.LATTICE_BOT.put('grid_v2_state', JSON.stringify(state));
+  if (newLogs && newLogs.length) {
+    let existing = [];
+    try { existing = JSON.parse((await env.LATTICE_BOT.get('grid_v2_logs')) || '[]'); } catch (e) {}
+    await env.LATTICE_BOT.put('grid_v2_logs', JSON.stringify([...existing, ...newLogs].slice(-150)));
+  }
 }
 
-tick();
-setInterval(tick, 3000);
-</script>
-</body>
-</html>
+// ── Main loop ─────────────────────────────────────────────────
+async function runGridBot(env) {
+  const ts   = new Date().toISOString();
+  const logs = [];
+  const log  = msg => logs.push({ ts, msg });
+
+  const state       = await loadState(env);
+  const usdtPerPair = state.cash / PAIRS.length;
+  let   equity      = state.cash;
+
+  for (const symbol of PAIRS) {
+    const ticker = await getTicker(symbol);
+    if (!ticker) { log(`[${symbol}] ticker failed, skipping`); continue; }
+
+    const price = parseFloat(ticker.a || ticker.k || ticker.b || '0');
+    if (!price) continue;
+
+    if (!state.assets[symbol])     state.assets[symbol]     = { qty: 0, avgCost: 0 };
+    if (!state.openOrders[symbol]) state.openOrders[symbol] = [];
+
+    const asset  = state.assets[symbol];
+    let   orders = state.openOrders[symbol];
+    const meta   = await getInstrumentMeta(symbol);
+
+    // ── Check real order status ──────────────────────────────
+    const stillOpen = [];
+    for (const o of orders) {
+      let detail;
+      try {
+        detail = await getOrderDetail(env, o.orderId);
+      } catch (e) {
+        log(`[${symbol}] status check failed for order ${o.orderId}: ${e.message}`);
+        stillOpen.push(o); // retry next run
+        continue;
+      }
+
+      const status = detail?.status;
+
+      if (status === 'CANCELED' || status === 'REJECTED' || status === 'EXPIRED') {
+        log(`[${symbol}] order ${o.orderId} ${status}, dropping (will re-place on top-up)`);
+        continue;
+      }
+
+      if (status !== 'FILLED') {
+        stillOpen.push(o); // ACTIVE / PENDING / unknown → keep tracking
+        continue;
+      }
+
+      // ── FILLED ──
+      const fillPrice = parseFloat(detail.avg_price || o.price);
+      const fillQty   = parseFloat(detail.cumulative_quantity || o.qty);
+
+      if (o.side === 'BUY') {
+        const newQty  = asset.qty + fillQty;
+        asset.avgCost = newQty > 0
+          ? ((asset.avgCost * asset.qty) + (fillPrice * fillQty)) / newQty
+          : fillPrice;
+        asset.qty  = newQty;
+        state.cash -= fillQty * fillPrice;
+
+        const targetSell = fillPrice * (1 + LEVEL_SPACINGS[0]);
+        const costFloor  = asset.avgCost * (1 + MIN_PROFIT_MARGIN);
+        const sellPrice  = Math.max(targetSell, costFloor);
+
+        try {
+          const newOrderId = await placeOrder(env, symbol, 'SELL', sellPrice, fillQty, meta);
+          stillOpen.push({ orderId: newOrderId, side: 'SELL', price: sellPrice, qty: fillQty });
+          log(`[${symbol}] FILLED BUY @$${fillPrice.toFixed(2)} qty:${fillQty.toFixed(6)} → real SELL @$${sellPrice.toFixed(2)} (order ${newOrderId})`);
+        } catch (e) {
+          log(`[${symbol}] FILLED BUY but failed to place SELL: ${e.message}`);
+        }
+
+      } else {
+        const profit = fillQty * (fillPrice - (asset.avgCost || fillPrice));
+        asset.qty       = Math.max(0, asset.qty - fillQty);
+        state.cash     += fillQty * fillPrice;
+        state.realizedPnl += profit;
+        state.tradeCount++;
+        if (profit > 0) state.winCount++;
+
+        state.trades.unshift({ symbol, price: fillPrice, qty: fillQty, profit, ts });
+        state.trades = state.trades.slice(0, 20);
+
+        const buyPrice = fillPrice * (1 - LEVEL_SPACINGS[0]);
+        try {
+          const newOrderId = await placeOrder(env, symbol, 'BUY', buyPrice, fillQty, meta);
+          stillOpen.push({ orderId: newOrderId, side: 'BUY', price: buyPrice, qty: fillQty });
+          log(`[${symbol}] FILLED SELL @$${fillPrice.toFixed(2)} P&L:${profit >= 0 ? '+' : ''}$${profit.toFixed(4)} → real BUY @$${buyPrice.toFixed(2)} (order ${newOrderId})`);
+        } catch (e) {
+          log(`[${symbol}] FILLED SELL but failed to place BUY: ${e.message}`);
+        }
+      }
+    }
+    orders = stillOpen;
+
+    // ── Top-up grid (real orders) ────────────────────────────
+    const buys        = orders.filter(o => o.side === 'BUY');
+    const sells       = orders.filter(o => o.side === 'SELL');
+    const perOrderUSD = Math.max(5, usdtPerPair / (LEVELS * 2));
+
+    if (buys.length < LEVELS && state.cash >= perOrderUSD) {
+      for (let i = buys.length + 1; i <= LEVELS; i++) {
+        const buyPrice = price * (1 - LEVEL_SPACINGS[i - 1]);
+        const qty      = perOrderUSD / buyPrice;
+        if (qty > 0) {
+          try {
+            const orderId = await placeOrder(env, symbol, 'BUY', buyPrice, qty, meta);
+            orders.push({ orderId, side: 'BUY', price: buyPrice, qty });
+            log(`[${symbol}] Top-up BUY L${i} @$${buyPrice.toFixed(2)} (order ${orderId})`);
+          } catch (e) {
+            log(`[${symbol}] Top-up BUY L${i} failed: ${e.message}`);
+          }
+        }
+      }
+    }
+
+    if (sells.length < LEVELS && asset.qty > 0.0005) {
+      const sellQtyEach = Math.max(0.0005, asset.qty / LEVELS);
+      for (let i = sells.length + 1; i <= LEVELS; i++) {
+        const targetSell = price * (1 + LEVEL_SPACINGS[i - 1]);
+        const costFloor  = (asset.avgCost > 0) ? asset.avgCost * (1 + MIN_PROFIT_MARGIN) : 0;
+        const sellPrice  = Math.max(targetSell, costFloor);
+        try {
+          const orderId = await placeOrder(env, symbol, 'SELL', sellPrice, sellQtyEach, meta);
+          orders.push({ orderId, side: 'SELL', price: sellPrice, qty: sellQtyEach });
+          log(`[${symbol}] Top-up SELL L${i} @$${sellPrice.toFixed(2)}${costFloor > targetSell ? ' (held at cost floor)' : ''} (order ${orderId})`);
+        } catch (e) {
+          log(`[${symbol}] Top-up SELL L${i} failed: ${e.message}`);
+        }
+      }
+    }
+
+    state.openOrders[symbol] = orders;
+    equity += asset.qty * price;
+  }
+
+  // ── Save ─────────────────────────────────────────────────
+  state.equity  = equity;
+  state.pnlPct  = ((equity - REAL_START_CAPITAL) / REAL_START_CAPITAL) * 100;
+  state.winRate = state.tradeCount > 0 ? Math.round((state.winCount / state.tradeCount) * 100) : 0;
+  state.lastRun = ts;
+
+  await saveState(env, state, logs);
+  return state;
+}
+
+// ── CORS ─────────────────────────────────────────────────────
+const CORS = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Cache-Control':                'no-cache, no-store'
+};
+const json = (d, s = 200) => new Response(JSON.stringify(d, null, 2), {
+  status: s, headers: { ...CORS, 'Content-Type': 'application/json' }
+});
+
+// ── Worker entry ─────────────────────────────────────────────
+export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runGridBot(env));
+  },
+
+  async fetch(request, env, ctx) {
+    const path = new URL(request.url).pathname;
+    if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+    if (path === '/paper-grid-status') {
+      const state = await loadState(env);
+      let logs = [];
+      try { logs = JSON.parse((await env.LATTICE_BOT.get('grid_v2_logs')) || '[]'); } catch (e) {}
+      const realBalance = await getRealBalance(env);
+      return json({ paperGrid: state, logs: logs.slice(-50), realBalance });
+    }
+
+    if (path === '/paper-grid-run' && request.method === 'POST') {
+      return json({ ok: true, paperGrid: await runGridBot(env) });
+    }
+
+    if (path === '/paper-grid-reset' && request.method === 'POST') {
+      // Cancel any live real orders before wiping tracked state
+      try {
+        const old = await loadState(env);
+        for (const symbol of PAIRS) {
+          for (const o of (old.openOrders?.[symbol] || [])) {
+            await cancelOrder(env, symbol, o.orderId);
+          }
+        }
+      } catch (e) {}
+
+      const fresh = {
+        startedAt: new Date().toISOString(),
+        cash: REAL_START_CAPITAL,
+        assets: {}, openOrders: {},
+        realizedPnl: 0, tradeCount: 0, winCount: 0, trades: []
+      };
+      for (const p of PAIRS) {
+        fresh.assets[p]     = { qty: 0, avgCost: 0 };
+        fresh.openOrders[p] = [];
+      }
+      await env.LATTICE_BOT.put('grid_v2_state', JSON.stringify(fresh));
+      await env.LATTICE_BOT.put('grid_v2_logs',  JSON.stringify([]));
+      return json({ ok: true, msg: 'Grid bot reset to $' + REAL_START_CAPITAL + ' (real orders cancelled)' });
+    }
+
+    return json({
+      name: 'Lattice Grid Bot (REAL)',
+      endpoints: ['/paper-grid-status', 'POST /paper-grid-run', 'POST /paper-grid-reset']
+    });
+  }
+};
