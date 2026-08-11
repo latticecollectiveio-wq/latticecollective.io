@@ -75,7 +75,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     <div class="logo-icon">◈</div>
     <div>
       <h1>LATTICE GRID V3</h1>
-      <p>SELF-TUNING GRID BOT — CRYPTO.COM</p>
+      <p>GRID BOT — CRYPTO.COM</p>
     </div>
   </div>
   <div class="hright">
@@ -84,7 +84,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </header>
 
-<div class="fixbar">✓ order_id validation · ✓ stuck-order eviction · ✓ fee-aware P&amp;L · ✓ oversell protection · ✓ cash-reservation fix · ✓ self-tuning profit margin per pair</div>
+<div class="fixbar">✓ order_id validation · ✓ stuck-order eviction · ✓ fee-aware P&amp;L · ✓ oversell protection · ✓ cash-reservation fix</div>
 
 <div class="main">
 
@@ -116,15 +116,9 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     </div>
   </div>
 
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-hdr"><span class="ptitle">// HOLDINGS</span></div>
-      <div id="assetsWrap"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-hdr"><span class="ptitle">// MEMORY — SELF-TUNED SELL MARGIN</span></div>
-      <div id="memWrap"></div>
-    </div>
+  <div class="panel">
+    <div class="panel-hdr"><span class="ptitle">// HOLDINGS</span></div>
+    <div id="assetsWrap"></div>
   </div>
 
   <div class="panel">
@@ -254,19 +248,6 @@ function render(d) {
       return `<div class="bal-item">
         <div class="bal-row"><span class="bsym">${sym.replace('_USDT','')}</span><span class="bval">${(a.qty||0).toFixed(6)}</span></div>
         <div class="bsub">avg cost $${(a.avgCost||0).toFixed(2)} — value ≈ $${val.toFixed(2)}</div>
-      </div>`;
-    }).join('') || '<div class="bal-item"><div class="bsub">No data yet</div></div>';
-  });
-
-  safe(() => {
-    const memory = g.memory || {};
-    const wrap = document.getElementById('memWrap');
-    wrap.innerHTML = Object.keys(memory).map(sym => {
-      const m = memory[sym];
-      const n = (m.pastProfitPct || []).length;
-      return `<div class="bal-item">
-        <div class="bal-row"><span class="bsym">${sym.replace('_USDT','')}</span><span class="bval">${((m.tunedMargin||0)*100).toFixed(2)}%</span></div>
-        <div class="bsub">margin required above cost — tuned from ${n} past trade${n===1?'':'s'}</div>
       </div>`;
     }).join('') || '<div class="bal-item"><div class="bsub">No data yet</div></div>';
   });
