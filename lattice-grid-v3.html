@@ -130,6 +130,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
       <thead><tr><th>PAIR</th><th>SIDE</th><th>PRICE</th><th>QTY</th></tr></thead>
       <tbody id="ordersBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr></tbody>
     </table>
+    <div id="ordersNote" class="bsub" style="padding:6px 9px;"></div>
   </div>
 
   <div class="panel">
@@ -165,7 +166,7 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 const W = 'https://lattice-grid-v3.latticecollective-io.workers.dev';
 const START_CAPITAL = 500;
 let failCount = 0;
-let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0 };
+let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0, XRP_USDT: 0, ADA_USDT: 0 };
 
 function setStatus(cls, txt) {
   document.getElementById('sDot').className = 'sdot ' + cls;
@@ -240,14 +241,20 @@ function render(d) {
 
   safe(() => {
     const assets = g.assets || {};
+    const openOrders = g.openOrders || {};
     const wrap = document.getElementById('assetsWrap');
     wrap.innerHTML = Object.keys(assets).map(sym => {
       const a = assets[sym];
       const price = prices[sym] || 0;
       const val = (a.qty || 0) * price;
+      const orders = openOrders[sym] || [];
+      const buyCount = orders.filter(o => o.side === 'BUY').length;
+      const sellCount = orders.filter(o => o.side === 'SELL').length;
+      const pnl = a.realizedPnl || 0;
       return `<div class="bal-item">
         <div class="bal-row"><span class="bsym">${sym.replace('_USDT','')}</span><span class="bval">${(a.qty||0).toFixed(6)}</span></div>
         <div class="bsub">avg cost $${(a.avgCost||0).toFixed(2)} — value ≈ $${val.toFixed(2)}</div>
+        <div class="bsub">${buyCount} BUY / ${sellCount} SELL open — realized ${pnl>=0?'+':''}$${pnl.toFixed(2)} (${a.tradeCount||0} trade${(a.tradeCount||0)===1?'':'s'})</div>
       </div>`;
     }).join('') || '<div class="bal-item"><div class="bsub">No data yet</div></div>';
   });
@@ -257,12 +264,21 @@ function render(d) {
     let all = [];
     Object.keys(openOrders).forEach(sym => (openOrders[sym] || []).forEach(o => all.push({ ...o, pair: sym })));
     document.getElementById('openBadge').textContent = all.length + ' ACTIVE';
-    document.getElementById('openBadge').className = 'pbadge ' + (all.length > 30 ? 'r' : 'g');
+    document.getElementById('openBadge').className = 'pbadge ' + (all.length > 300 ? 'r' : 'g');
+    // At up to 500 open orders across 5 assets, rendering every row would be
+    // unusable on mobile. Show the orders nearest to market price (the ones
+    // most likely to fill next) and note how many are hidden.
+    const CAP = 40;
+    const withDist = all.map(o => ({ ...o, dist: Math.abs((o.price||0) - (prices[o.pair] || o.price || 0)) }));
+    withDist.sort((x, y) => x.dist - y.dist);
+    const shown = withDist.slice(0, CAP);
     const ob = document.getElementById('ordersBody');
-    ob.innerHTML = all.length ? all.map(o => `<tr class="${o.side === 'BUY' ? 'br' : 'sr'}">
+    ob.innerHTML = shown.length ? shown.map(o => `<tr class="${o.side === 'BUY' ? 'br' : 'sr'}">
       <td>${o.pair.replace('_USDT','')}</td><td>${o.side}</td>
       <td>$${(o.price||0).toFixed(2)}</td><td>${(o.qty||0).toFixed(6)}</td>
     </tr>`).join('') : '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr>';
+    const note = document.getElementById('ordersNote');
+    if (note) note.textContent = all.length > CAP ? `Showing ${CAP} nearest-to-market of ${all.length} total open orders` : '';
   });
 
   safe(() => {
