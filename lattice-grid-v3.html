@@ -8,8 +8,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 :root{--bg:#080c0f;--bg2:#0d1318;--bg3:#111920;--border:#1a2530;--green:#00e676;--red:#ff3d57;--blue:#2196f3;--amber:#ffb300;--muted:#4a6070;--text:#c8d8e0;--text2:#7a9aaa;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;padding-bottom:40px;}
-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;padding-bottom:40px;position:relative;}
+#bgFx{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+header,.ticker,.fixbar,.main,footer{position:relative;z-index:1;}
+header{background:rgba(13,19,24,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border-bottom:1px solid var(--border);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
 .logo{display:flex;align-items:center;gap:12px;}
 .logo-icon{width:38px;height:38px;border:2px solid var(--green);display:grid;place-items:center;font-size:16px;color:var(--green);}
 .logo h1{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;letter-spacing:3px;color:#fff;}
@@ -24,7 +26,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 
 .sdot.err{background:var(--red);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .fixbar{background:rgba(0,230,118,.06);border-bottom:1px solid rgba(0,230,118,.2);padding:9px 22px;font-family:'Space Mono',monospace;font-size:9.5px;color:var(--text2);letter-spacing:.3px;}
-.ticker{display:flex;gap:0;overflow-x:auto;background:var(--bg3);border-bottom:1px solid var(--border);}
+.ticker{display:flex;gap:0;overflow-x:auto;background:rgba(17,25,32,.65);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border-bottom:1px solid var(--border);}
 .ticker::-webkit-scrollbar{display:none;}
 .tick-item{display:flex;align-items:baseline;gap:7px;padding:9px 16px;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;}
 .tick-sym{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text2);}
@@ -81,6 +83,8 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 </style>
 </head>
 <body>
+
+<canvas id="bgFx"></canvas>
 
 <header>
   <div class="logo">
@@ -178,6 +182,89 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 </footer>
 
 <script>
+// ── Background: slow-drifting glowing node network (matches AI Terminal look) ──
+(function () {
+  const canvas = document.getElementById('bgFx');
+  const ctx = canvas.getContext('2d');
+  let w, h, nodes;
+
+  function sizeCanvas() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = document.documentElement.scrollHeight;
+  }
+
+  function makeNodes() {
+    // density scales with area, capped so it stays light on large/tall pages
+    const count = Math.min(90, Math.round((w * h) / 26000));
+    nodes = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.12,   // slow drift, not a "particle storm"
+      vy: (Math.random() - 0.5) * 0.12,
+      r: 1 + Math.random() * 1.6,
+      phase: Math.random() * Math.PI * 2  // offsets the glow pulse per-node
+    }));
+  }
+
+  function step(t) {
+    ctx.fillStyle = '#080c0f'; // matches --bg
+    ctx.fillRect(0, 0, w, h);
+
+    for (const n of nodes) {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0) n.x = w; if (n.x > w) n.x = 0;
+      if (n.y < 0) n.y = h; if (n.y > h) n.y = 0;
+    }
+
+    // faint connecting lines between nearby nodes
+    const LINK_DIST = 130;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < LINK_DIST) {
+          ctx.strokeStyle = `rgba(120,170,255,${0.12 * (1 - dist / LINK_DIST)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // glowing blue-white nodes, gently pulsing
+    for (const n of nodes) {
+      const pulse = 0.55 + 0.45 * Math.sin(t * 0.0006 + n.phase);
+      const glowR = n.r * 5;
+      const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR);
+      grad.addColorStop(0, `rgba(190,220,255,${0.55 * pulse})`);
+      grad.addColorStop(1, 'rgba(190,220,255,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(255,255,255,${0.75 * pulse})`;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  sizeCanvas();
+  makeNodes();
+  requestAnimationFrame(step);
+  window.addEventListener('resize', () => { sizeCanvas(); makeNodes(); });
+  // page height can change once data loads (more rows) — recheck occasionally
+  setInterval(() => {
+    const newH = document.documentElement.scrollHeight;
+    if (Math.abs(newH - h) > 40) sizeCanvas();
+  }, 4000);
+})();
+
 // Update this if your Worker's actual subdomain differs
 const W = 'https://lattice-grid-v3.latticecollective-io.workers.dev';
 const START_CAPITAL = 500;
