@@ -64,18 +64,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 
 .bsym{font-family:'Space Mono',monospace;color:var(--text2);letter-spacing:1px;}
 .bval{font-family:'Space Mono',monospace;color:#fff;font-weight:700;}
 .bsub{font-size:9px;color:var(--text2);margin-top:3px;}
-.trade-item{padding:11px 15px;border-bottom:1px solid rgba(26,37,48,.5);}
-.trade-item:last-child{border:none;}
-.trade-row{display:flex;justify-content:space-between;align-items:baseline;}
-.tsym{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text2);}
-.tprofit{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;}
-.tprofit.pos{color:var(--green);}
-.tprofit.neg{color:var(--red);}
-.tpath{font-family:'Space Mono',monospace;font-size:11px;color:#fff;margin-top:4px;}
-.tpath .tarrow{color:var(--text2);margin:0 4px;}
-.tpath .tmargin{color:var(--green);font-size:9px;margin-left:6px;}
-.tpath .tmargin.neg{color:var(--red);}
-.tqty{font-size:9px;color:var(--text2);margin-top:2px;}
+.tbl-scroll{overflow-x:auto;}
+.tbl-scroll .otbl{min-width:520px;}
 .log-wrap{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;padding:7px;}
 .le{display:flex;gap:7px;font-size:10px;padding:5px 7px;background:var(--bg3);}
 .le.buy{border-left:2px solid var(--green);}
@@ -162,7 +152,12 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
       <span class="ptitle">// RECENT TRADES</span>
       <span class="pbadge g" id="tradesBadge">0</span>
     </div>
-    <div id="tradesWrap"><div class="trade-item"><div class="bsub">No trades yet</div></div></div>
+    <div class="tbl-scroll">
+      <table class="otbl">
+        <thead><tr><th>PAIR</th><th>ENTRY</th><th>SELL</th><th>MARGIN</th><th>QTY</th><th>PROFIT</th></tr></thead>
+        <tbody id="tradesBody"><tr class="empty-row"><td colspan="6" style="padding:12px 9px">No trades yet</td></tr></tbody>
+      </table>
+    </div>
   </div>
 
   <div class="panel">
@@ -329,22 +324,26 @@ function render(d) {
   safe(() => {
     const trades = g.trades || [];
     document.getElementById('tradesBadge').textContent = trades.length;
-    const wrap = document.getElementById('tradesWrap');
-    wrap.innerHTML = trades.length ? trades.map(t => {
+    const tb = document.getElementById('tradesBody');
+    tb.innerHTML = trades.length ? trades.map(t => {
       const profit = t.profit || 0;
       const pos = profit >= 0;
       const sym = (t.symbol || '—').replace('_USDT', '');
+      const sellPrice = t.price || 0;
+      const dec = sellPrice >= 100 ? 2 : 4;
       const hasEntry = t.entryPrice !== undefined && t.entryPrice !== null;
-      const marginPct = hasEntry ? (t.marginPct !== undefined ? t.marginPct : ((t.price - t.entryPrice) / t.entryPrice)) : null;
-      const path = hasEntry
-        ? `$${t.entryPrice.toFixed(t.entryPrice >= 100 ? 2 : 4)} <span class="tarrow">→</span> $${(t.price||0).toFixed((t.price||0) >= 100 ? 2 : 4)} <span class="tmargin ${marginPct >= 0 ? '' : 'neg'}">(${marginPct >= 0 ? '+' : ''}${(marginPct*100).toFixed(2)}%)</span>`
-        : `sold @ $${(t.price||0).toFixed((t.price||0) >= 100 ? 2 : 4)}`; // older trades recorded before entry price was tracked
-      return `<div class="trade-item">
-        <div class="trade-row"><span class="tsym">${sym}</span><span class="tprofit ${pos?'pos':'neg'}">${fmtSigned(profit)}</span></div>
-        <div class="tpath">${path}</div>
-        <div class="tqty">qty ${(t.qty||0).toFixed(6)}</div>
-      </div>`;
-    }).join('') : '<div class="trade-item"><div class="bsub">No trades yet</div></div>';
+      const entryStr = hasEntry ? `$${t.entryPrice.toFixed(dec)}` : '—';
+      const marginPct = hasEntry ? (t.marginPct !== undefined ? t.marginPct : ((sellPrice - t.entryPrice) / t.entryPrice)) : null;
+      const marginStr = hasEntry ? `${marginPct >= 0 ? '+' : ''}${(marginPct*100).toFixed(2)}%` : '—';
+      return `<tr class="${pos ? 'br' : 'sr'}">
+        <td>${sym}</td>
+        <td>${entryStr}</td>
+        <td>$${sellPrice.toFixed(dec)}</td>
+        <td>${marginStr}</td>
+        <td>${(t.qty||0).toFixed(6)}</td>
+        <td>${fmtSigned(profit)}</td>
+      </tr>`;
+    }).join('') : '<tr class="empty-row"><td colspan="6" style="padding:12px 9px">No trades yet</td></tr>';
   });
 
   safe(() => {
