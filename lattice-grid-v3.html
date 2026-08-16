@@ -24,6 +24,16 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:15px 
 .sdot.err{background:var(--red);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .fixbar{background:rgba(0,230,118,.06);border-bottom:1px solid rgba(0,230,118,.2);padding:9px 22px;font-family:'Space Mono',monospace;font-size:9.5px;color:var(--text2);letter-spacing:.3px;}
+.ticker{display:flex;gap:0;overflow-x:auto;background:var(--bg3);border-bottom:1px solid var(--border);}
+.ticker::-webkit-scrollbar{display:none;}
+.tick-item{display:flex;align-items:baseline;gap:7px;padding:9px 16px;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;}
+.tick-sym{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text2);}
+.tick-px{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff;transition:color .25s ease;}
+.tick-px.up{color:var(--green);}
+.tick-px.down{color:var(--red);}
+.tick-arrow{font-size:9px;}
+.tick-arrow.up{color:var(--green);}
+.tick-arrow.down{color:var(--red);}
 .main{padding:18px 22px;display:grid;gap:14px;}
 .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
 @media(max-width:800px){.stat-row{grid-template-columns:repeat(3,1fr);}}
@@ -83,6 +93,8 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
     <div class="spill"><div class="sdot" id="sDot"></div><span id="sTxt">CONNECTING</span></div>
   </div>
 </header>
+
+<div class="ticker" id="tickerStrip"></div>
 
 <div class="fixbar">✓ order_id validation · ✓ stuck-order eviction · ✓ fee-aware P&amp;L · ✓ oversell protection · ✓ cash-reservation fix</div>
 
@@ -167,6 +179,7 @@ const W = 'https://lattice-grid-v3.latticecollective-io.workers.dev';
 const START_CAPITAL = 500;
 let failCount = 0;
 let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0, XRP_USDT: 0, ADA_USDT: 0 };
+let priceDir = {}; // last known up/down direction per symbol, for the ticker strip
 
 function setStatus(cls, txt) {
   document.getElementById('sDot').className = 'sdot ' + cls;
@@ -175,15 +188,38 @@ function setStatus(cls, txt) {
 function safe(fn) { try { fn(); } catch (e) { console.warn('Render err:', e); } }
 function fmtSigned(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
 
+// Fetches all 5 tickers in parallel (not sequential) so a 1s cadence stays fast,
+// and tracks whether each price moved up/down since the last tick for the
+// ticker strip's flash coloring.
 async function fetchPrices() {
-  for (const sym of Object.keys(prices)) {
+  await Promise.all(Object.keys(prices).map(async sym => {
     try {
       const r = await fetch(`https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=${sym}`);
       const j = await r.json();
       const p = parseFloat(j?.result?.data?.[0]?.a || j?.result?.data?.[0]?.k || 0);
-      if (p) prices[sym] = p;
+      if (p) {
+        if (prices[sym] && p !== prices[sym]) priceDir[sym] = p > prices[sym] ? 'up' : 'down';
+        prices[sym] = p;
+      }
     } catch (e) {}
-  }
+  }));
+  renderTicker();
+}
+
+function renderTicker() {
+  const strip = document.getElementById('tickerStrip');
+  if (!strip) return;
+  strip.innerHTML = Object.keys(prices).map(sym => {
+    const p = prices[sym];
+    const dir = priceDir[sym] || '';
+    const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '';
+    const decimals = p >= 100 ? 2 : p >= 1 ? 4 : 5;
+    return `<div class="tick-item">
+      <span class="tick-sym">${sym.replace('_USDT','')}</span>
+      <span class="tick-px ${dir}">$${p ? p.toFixed(decimals) : '—'}</span>
+      <span class="tick-arrow ${dir}">${arrow}</span>
+    </div>`;
+  }).join('');
 }
 
 async function poll() {
@@ -307,9 +343,14 @@ function render(d) {
   });
 }
 
-async function tick() { await fetchPrices(); await poll(); }
-tick();
-setInterval(tick, 3000);
+// Prices tick every second for real-time movement. The grid-status poll
+// (holdings, orders, trades, logs) stays slower since it's a heavier call
+// to the Worker and doesn't need per-second freshness.
+fetchPrices();
+setInterval(fetchPrices, 1000);
+
+poll();
+setInterval(poll, 3000);
 </script>
 </body>
 </html>
