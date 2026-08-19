@@ -54,6 +54,10 @@ header{background:rgba(13,19,24,.72);backdrop-filter:blur(3px);-webkit-backdrop-
 .pbadge.g{color:var(--green);border-color:rgba(0,230,118,.3);}
 .pbadge.r{color:var(--red);border-color:rgba(255,61,87,.3);}
 .otbl{width:100%;font-size:11px;border-collapse:collapse;}
+.asset-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;}
+.asset-tab{padding:9px 16px;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.5px;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;}
+.asset-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.otbl-scroll{max-height:420px;overflow-y:auto;}
 .otbl th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);padding:7px 9px;text-align:left;border-bottom:1px solid var(--border);}
 .otbl td{padding:7px 9px;border-bottom:1px solid rgba(26,37,48,.5);font-family:'Space Mono',monospace;}
 .otbl tr:last-child td{border:none;}
@@ -141,13 +145,16 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 
   <div class="panel">
     <div class="panel-hdr">
-      <span class="ptitle">// OPEN ORDERS — ALL PAIRS</span>
+      <span class="ptitle">// OPEN ORDERS</span>
       <span class="pbadge g" id="openBadge">0 ACTIVE</span>
     </div>
-    <table class="otbl">
-      <thead><tr><th>PAIR</th><th>SIDE</th><th>PRICE</th><th>QTY</th></tr></thead>
-      <tbody id="ordersBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr></tbody>
-    </table>
+    <div class="asset-tabs" id="assetTabs"></div>
+    <div class="otbl-scroll">
+      <table class="otbl">
+        <thead><tr><th>SIDE</th><th>ENTRY PRICE</th><th>QTY</th><th>DIST FROM MARKET</th></tr></thead>
+        <tbody id="ordersBody"><tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr></tbody>
+      </table>
+    </div>
     <div id="ordersNote" class="bsub" style="padding:6px 9px;"></div>
   </div>
 
@@ -313,6 +320,36 @@ function renderTicker() {
   }).join('');
 }
 
+function renderOrdersTable(g) {
+  const openOrders = g.openOrders || {};
+  const sym = window._selectedAssetTab;
+  const ob = document.getElementById('ordersBody');
+  const note = document.getElementById('ordersNote');
+  if (!sym) { ob.innerHTML = '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr>'; note.textContent = ''; return; }
+
+  const orders = (openOrders[sym] || []).slice();
+  const marketPrice = prices[sym] || 0;
+  const dec = marketPrice >= 100 ? 2 : marketPrice >= 1 ? 4 : 5;
+
+  // Within each side, show the level closest to market first — that's the
+  // one most likely to fill next, so it's what you actually want to check.
+  const buys = orders.filter(o => o.side === 'BUY').sort((a, b) => (b.price||0) - (a.price||0));
+  const sells = orders.filter(o => o.side === 'SELL').sort((a, b) => (a.price||0) - (b.price||0));
+  const ordered = [...buys, ...sells];
+
+  ob.innerHTML = ordered.length ? ordered.map(o => {
+    const dist = marketPrice > 0 ? ((o.price||0) - marketPrice) / marketPrice * 100 : 0;
+    return `<tr class="${o.side === 'BUY' ? 'br' : 'sr'}">
+      <td>${o.side}</td>
+      <td>$${(o.price||0).toFixed(dec)}</td>
+      <td>${(o.qty||0).toFixed(6)}</td>
+      <td>${dist >= 0 ? '+' : ''}${dist.toFixed(2)}%</td>
+    </tr>`;
+  }).join('') : '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders for this asset</td></tr>';
+
+  note.textContent = `${buys.length} BUY / ${sells.length} SELL for ${sym.replace('_USDT','')} — current price $${marketPrice.toFixed(dec)}`;
+}
+
 async function poll() {
   try {
     const res = await fetch(`${W}/grid-status`, { cache: 'no-store' });
@@ -388,24 +425,28 @@ function render(d) {
 
   safe(() => {
     const openOrders = g.openOrders || {};
-    let all = [];
-    Object.keys(openOrders).forEach(sym => (openOrders[sym] || []).forEach(o => all.push({ ...o, pair: sym })));
-    document.getElementById('openBadge').textContent = all.length + ' ACTIVE';
-    document.getElementById('openBadge').className = 'pbadge ' + (all.length > 300 ? 'r' : 'g');
-    // At up to 500 open orders across 5 assets, rendering every row would be
-    // unusable on mobile. Show the orders nearest to market price (the ones
-    // most likely to fill next) and note how many are hidden.
-    const CAP = 40;
-    const withDist = all.map(o => ({ ...o, dist: Math.abs((o.price||0) - (prices[o.pair] || o.price || 0)) }));
-    withDist.sort((x, y) => x.dist - y.dist);
-    const shown = withDist.slice(0, CAP);
-    const ob = document.getElementById('ordersBody');
-    ob.innerHTML = shown.length ? shown.map(o => `<tr class="${o.side === 'BUY' ? 'br' : 'sr'}">
-      <td>${o.pair.replace('_USDT','')}</td><td>${o.side}</td>
-      <td>$${(o.price||0).toFixed(2)}</td><td>${(o.qty||0).toFixed(6)}</td>
-    </tr>`).join('') : '<tr class="empty-row"><td colspan="4" style="padding:12px 9px">No open orders</td></tr>';
-    const note = document.getElementById('ordersNote');
-    if (note) note.textContent = all.length > CAP ? `Showing ${CAP} nearest-to-market of ${all.length} total open orders` : '';
+    const symbols = Object.keys(openOrders);
+    let all = 0;
+    symbols.forEach(sym => { all += (openOrders[sym] || []).length; });
+    document.getElementById('openBadge').textContent = all + ' ACTIVE';
+    document.getElementById('openBadge').className = 'pbadge ' + (all > 400 ? 'r' : 'g');
+
+    // Default to the first asset, or keep whichever tab the user already picked
+    if (!window._selectedAssetTab || !symbols.includes(window._selectedAssetTab)) {
+      window._selectedAssetTab = symbols[0] || null;
+    }
+
+    const tabsWrap = document.getElementById('assetTabs');
+    tabsWrap.innerHTML = symbols.map(sym => {
+      const count = (openOrders[sym] || []).length;
+      const active = sym === window._selectedAssetTab ? 'active' : '';
+      return `<button class="asset-tab ${active}" data-sym="${sym}">${sym.replace('_USDT','')} (${count})</button>`;
+    }).join('');
+    tabsWrap.querySelectorAll('.asset-tab').forEach(btn => {
+      btn.onclick = () => { window._selectedAssetTab = btn.dataset.sym; renderOrdersTable(g); };
+    });
+
+    renderOrdersTable(g);
   });
 
   safe(() => {
