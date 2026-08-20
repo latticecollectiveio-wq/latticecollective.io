@@ -274,9 +274,9 @@ footer{padding:13px 22px;border-top:1px solid var(--border);display:flex;justify
 
 // Update this if your Worker's actual subdomain differs
 const W = 'https://lattice-grid-v3.latticecollective-io.workers.dev';
-const START_CAPITAL = 500;
+const START_CAPITAL = 712.30; // $1,000 AUD converted to USD at ~0.7123 (2026-08-20) — must match worker.js
 let failCount = 0;
-let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0, XRP_USDT: 0, ADA_USDT: 0 };
+let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0, XRP_USDT: 0, ADA_USDT: 0, ZIL_USDT: 0, RUNE_USDT: 0 };
 let priceDir = {}; // last known up/down direction per symbol, for the ticker strip
 
 function setStatus(cls, txt) {
