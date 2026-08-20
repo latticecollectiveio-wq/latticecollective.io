@@ -36,6 +36,9 @@ header{background:rgba(13,19,24,.72);backdrop-filter:blur(3px);-webkit-backdrop-
 .tick-arrow{font-size:9px;}
 .tick-arrow.up{color:var(--green);}
 .tick-arrow.down{color:var(--red);}
+.tick-age{font-family:'Space Mono',monospace;font-size:8px;color:var(--text2);margin-left:2px;}
+.tick-age.stale{color:#ffb020;font-weight:700;}
+.tick-px.stale{color:#ffb020 !important;}
 .main{padding:18px 22px;display:grid;gap:14px;}
 .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
 @media(max-width:800px){.stat-row{grid-template-columns:repeat(3,1fr);}}
@@ -278,6 +281,10 @@ const START_CAPITAL = 712.30; // $1,000 AUD converted to USD at ~0.7123 (2026-08
 let failCount = 0;
 let prices = { BTC_USDT: 0, ETH_USDT: 0, SOL_USDT: 0, XRP_USDT: 0, ADA_USDT: 0, RUNE_USDT: 0 };
 let priceDir = {}; // last known up/down direction per symbol, for the ticker strip
+let lastUpdated = {}; // timestamp (ms) of the last SUCCESSFUL fetch per symbol — this is what actually
+                       // tells stale-and-silent apart from genuinely-not-moving. A price sitting still
+                       // is fine; a price with no successful fetch in 15s+ means the feed is broken.
+let fetchFailStreak = {}; // consecutive failed fetches per symbol
 
 function setStatus(cls, txt) {
   document.getElementById('sDot').className = 'sdot ' + cls;
@@ -286,7 +293,7 @@ function setStatus(cls, txt) {
 function safe(fn) { try { fn(); } catch (e) { console.warn('Render err:', e); } }
 function fmtSigned(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
 
-// Fetches all 5 tickers in parallel (not sequential) so a 1s cadence stays fast,
+// Fetches all tickers in parallel (not sequential) so a 1s cadence stays fast,
 // and tracks whether each price moved up/down since the last tick for the
 // ticker strip's flash coloring.
 async function fetchPrices() {
@@ -298,8 +305,17 @@ async function fetchPrices() {
       if (p) {
         if (prices[sym] && p !== prices[sym]) priceDir[sym] = p > prices[sym] ? 'up' : 'down';
         prices[sym] = p;
+        lastUpdated[sym] = Date.now();
+        fetchFailStreak[sym] = 0;
+      } else {
+        // Request succeeded but returned no usable price (e.g. empty data for
+        // this instrument) — this is exactly the ZIL failure mode. Count it
+        // as a miss so it surfaces instead of silently doing nothing.
+        fetchFailStreak[sym] = (fetchFailStreak[sym] || 0) + 1;
       }
-    } catch (e) {}
+    } catch (e) {
+      fetchFailStreak[sym] = (fetchFailStreak[sym] || 0) + 1;
+    }
   }));
   renderTicker();
 }
@@ -307,15 +323,23 @@ async function fetchPrices() {
 function renderTicker() {
   const strip = document.getElementById('tickerStrip');
   if (!strip) return;
+  const now = Date.now();
   strip.innerHTML = Object.keys(prices).map(sym => {
     const p = prices[sym];
     const dir = priceDir[sym] || '';
     const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '';
     const decimals = p >= 100 ? 2 : p >= 1 ? 4 : 5;
+    const ageSec = lastUpdated[sym] ? Math.floor((now - lastUpdated[sym]) / 1000) : null;
+    // Never successfully fetched at all (the ZIL case) or nothing successful
+    // in 15s+ (fetch is failing every tick, e.g. rate-limited) — flag it
+    // visibly instead of silently showing a frozen number that looks normal.
+    const isStale = ageSec === null || ageSec > 15 || (fetchFailStreak[sym] || 0) >= 5;
+    const ageLabel = ageSec === null ? 'no data' : ageSec < 60 ? `${ageSec}s ago` : `${Math.floor(ageSec/60)}m ago`;
     return `<div class="tick-item">
       <span class="tick-sym">${sym.replace('_USDT','')}</span>
-      <span class="tick-px ${dir}">$${p ? p.toFixed(decimals) : '—'}</span>
+      <span class="tick-px ${isStale ? 'stale' : dir}">$${p ? p.toFixed(decimals) : '—'}</span>
       <span class="tick-arrow ${dir}">${arrow}</span>
+      <span class="tick-age ${isStale ? 'stale' : ''}">${isStale ? '⚠ ' : ''}${ageLabel}</span>
     </div>`;
   }).join('');
 }
